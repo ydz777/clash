@@ -25,7 +25,7 @@ const baseConfig = {
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
     // 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染。但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
-    nameserver: ['223.5.5.5'],
+    nameserver: ['tls://8.8.8.8', 'tls://1.1.1.1', 'tls://9.9.9.9'],
     // 用来解析「DNS 服务器域名」的 DNS，需要直接使用 IP
     'default-nameserver': ['223.5.5.5'],
     'fake-ip-filter': ['geosite:cn', 'geosite:connectivity-check', 'geosite:private'],
@@ -102,10 +102,10 @@ const smartTemplate = {
   interval: 300, // 延迟测试间隔（秒）
 }
 
-const baseProxies = ['智能节点选择', '延迟选优', '本地直连']
+const baseProxies = ['智能优选', '延迟选优', '本地直连']
 
 // 🎨 图标基础 URL
-const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Alpha/'
+const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color'
 
 // 🚀 主要代理组配置
 const mainProxyGroups = [
@@ -115,7 +115,7 @@ const mainProxyGroups = [
     type: 'select',
     proxies: baseProxies,
     'include-all': true,
-    icon: `${iconsBaseUrl}/adjust.svg`,
+    icon: `${iconsBaseUrl}/Global.png`, // 🌐 全局选择
   },
 
   {
@@ -124,12 +124,12 @@ const mainProxyGroups = [
     type: 'select',
     proxies: baseProxies,
     'include-all': true,
-    icon: `${iconsBaseUrl}/adjust.svg`,
+    icon: `${iconsBaseUrl}/Static.png`, // 🛠️ 手动选择
   },
 
   {
     ...urlTestTemplate,
-    name: '智能节点选择',
+    name: '智能优选',
     type: 'smart',
     'include-all': true,
     // 'policy-priority': 'Premium:0.9;SG:1.3',
@@ -137,7 +137,7 @@ const mainProxyGroups = [
     collectdata: true,
     filter: 'hysteria2',
     strategy: 'sticky-sessions',
-    icon: `${iconsBaseUrl}/speed.svg`,
+    icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
   },
   {
     ...urlTestTemplate,
@@ -145,7 +145,7 @@ const mainProxyGroups = [
     type: 'url-test',
     tolerance: 100, // 延迟容差
     'include-all': true,
-    icon: `${iconsBaseUrl}/speed.svg`,
+    icon: `${iconsBaseUrl}/Urltest.png`, // ⏱️ 延迟测试
   },
   {
     ...urlTestTemplate,
@@ -153,16 +153,16 @@ const mainProxyGroups = [
     type: 'select',
     proxies: ['DIRECT'],
     'include-all': true,
-    icon: `${iconsBaseUrl}/adjust.svg`,
+    icon: `${iconsBaseUrl}/China.png`, // 🇨🇳 直连中国
   },
 
   {
     ...urlTestTemplate,
-    name: '🐋 漏网之鱼',
+    name: '漏网之鱼',
     type: 'select',
     proxies: ['节点选择', '本地直连'],
     'include-all': true,
-    icon: `${iconsBaseUrl}/adjust.svg`,
+    icon: `${iconsBaseUrl}/Final.png`, // 兜底流量
   },
 ]
 
@@ -193,7 +193,7 @@ const proxyRules = [
   // #GEOIP 规则
   'GEOIP,private,本地直连,no-resolve',
   'GEOIP,CN,本地直连',
-  'MATCH,🐋 漏网之鱼',
+  'MATCH,漏网之鱼',
 ]
 
 // 🚀 程序主入口函数
