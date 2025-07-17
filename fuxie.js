@@ -25,7 +25,7 @@ const baseConfig = {
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
     // 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染。但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
-    nameserver: ['tls://8.8.8.8', 'tls://1.1.1.1', 'tls://9.9.9.9'],
+    nameserver: ['223.5.5.5'],
     // 用来解析「DNS 服务器域名」的 DNS，需要直接使用 IP
     'default-nameserver': ['223.5.5.5'],
     'fake-ip-filter': ['geosite:cn', 'geosite:connectivity-check', 'geosite:private'],
