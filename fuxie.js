@@ -107,7 +107,7 @@ const smartTemplate = {
   strategy: 'sticky-sessions',
 }
 
-const baseProxies = ['智能优选', '延迟选优', '香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点', '本地直连']
+const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点']
 
 // 🎨 图标基础 URL
 const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color'
@@ -118,8 +118,8 @@ const mainProxyGroups = [
     ...urlTestTemplate,
     name: '节点选择',
     type: 'select',
-    proxies: baseProxies,
-    'include-all': true,
+    proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
+    // 'include-all': true,
     icon: `${iconsBaseUrl}/Global.png`, // 🌐 全局选择
   },
 
@@ -127,7 +127,7 @@ const mainProxyGroups = [
     ...urlTestTemplate,
     name: '手动选择',
     type: 'select',
-    proxies: baseProxies,
+    proxies: ['智能优选', '延迟选优', ...baseProxies, '本地直连'],
     'include-all': true,
     icon: `${iconsBaseUrl}/Static.png`, // 🛠️ 手动选择
   },
@@ -138,14 +138,14 @@ const mainProxyGroups = [
     type: 'smart',
     'include-all': true,
     ...smartTemplate,
-    filter: 'hysteria2',
+    filter: '(?i)(hysteria2|tuic)',
     icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
   },
   {
     ...urlTestTemplate,
     name: 'ai',
     type: 'select',
-    proxies: baseProxies,
+    proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
     'include-all': true,
     icon: `${iconsBaseUrl}/ASN.png`, // 🤖 AI 机器人
   },
