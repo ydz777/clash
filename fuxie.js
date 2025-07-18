@@ -3,12 +3,10 @@ const baseConfig = {
   mode: 'rule',
   ipv6: true,
   port: 7890,
-  'socks-port': 7891,
-  'redir-port': 7892,
-  'mixed-port': 7893,
-  'tproxy-port': 7895,
+  'mixed-port': 7891,
   'allow-lan': true,
   'log-level': 'info',
+  'find-process-mode': 'strict', // 控制是否让Clash去匹配进程  always开启，强制匹配所有进程  strict默认，由Clash判断是否开启  off不匹配进程，推荐在路由器上使用此模式
 
   // 🎛️ 外部控制器配置
   'external-controller': '0.0.0.0:9090',
@@ -25,26 +23,31 @@ const baseConfig = {
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
     // 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染。但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
-    nameserver: ['223.5.5.5'],
+    nameserver: ['223.5.5.5', '119.29.29.29', 'https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
     // 用来解析「DNS 服务器域名」的 DNS，需要直接使用 IP
-    'default-nameserver': ['223.5.5.5'],
-    'fake-ip-filter': ['geosite:cn', 'geosite:connectivity-check', 'geosite:private'],
+    'default-nameserver': ['119.29.29.29', '223.5.5.5'],
+    'fake-ip-filter': [
+      // 国内域名
+      'geosite:cn',
+      'geosite:connectivity-check',
+      'geosite:private',
+    ],
     // 用来解析「代理服务器域名」，防止 nameserver 无法访问导致连不上代理。 比如上个月国外 DoH 大规模被墙，很多 nameserver 设置为国外 DoH，又没有设置 proxy-server-nameserver 的人就连不上代理了（我自己就是）。
-    'proxy-server-nameserver': ['223.5.5.5'],
+    'proxy-server-nameserver': ['223.5.5.5', '119.29.29.29', 'https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
     // 「直连」域名的解析，这里用了 DoH 来防止劫持。直接用运营商的 DNS 也行，愿意自建 smartdns / adgurad home 等服务效果更好。
-    'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query', 'https://doh.360.cn/dns-query'],
+    'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query'],
   },
 
   // 🔗 Tun 配置
   tun: {
     enable: true,
-    stack: 'gvisor',
+    stack: 'mixed',
     device: 'utun',
     'endpoint-independent-nat': true,
-    'auto-route': false,
-    'auto-detect-interface': false,
-    'auto-redirect': false,
-    'strict-route': false,
+    'auto-route': true,
+    'auto-detect-interface': true,
+    'auto-redirect': true,
+    'strict-route': true,
   },
 
   // 💾 配置文件设置
@@ -72,10 +75,11 @@ const baseConfig = {
   'geo-auto-update': true,
   'geo-update-interval': 24,
   'geodata-mode': true,
+  'unified-delay': true, // 开启统一延迟时，会计算 RTT，以消除连接握手等带来的不同类型节点的延迟差异，（不使用统一延迟检测，有些节点前戏太慢了）
+  'tcp-concurrent': true, // TCP并发 如果解析出多个ip，同时对所有ip进行连接，返回延迟最低的地址
 
   // 🗺️ 地理位置数据配置
   geox: {
-    enable: true,
     geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat',
     geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
     mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb',
@@ -141,6 +145,14 @@ const mainProxyGroups = [
   },
   {
     ...urlTestTemplate,
+    name: 'ai',
+    type: 'select',
+    proxies: ['节点选择', '本地直连'],
+    'include-all': true,
+    icon: `${iconsBaseUrl}/ASN.png`, // 🤖 AI 机器人
+  },
+  {
+    ...urlTestTemplate,
     name: '延迟选优',
     type: 'url-test',
     tolerance: 100, // 延迟容差
@@ -179,20 +191,41 @@ const ruleProviders = {
 
 // 📋 代理规则配置
 const proxyRules = [
-  'RULE-SET,cn,本地直连',
+  // 🚫 拦截规则 - 最高优先级
   'GEOSITE,category-ads-all,REJECT',
+
+  // 🏠 本地网络规则 - 第二优先级
   'GEOSITE,private,本地直连',
-  'GEOSITE,category-scholar-!cn,节点选择',
-  'GEOSITE,onedrive,节点选择',
+
+  // 🇨🇳 国内服务直连 - 在代理规则前处理
+  'GEOSITE,category-games@cn,本地直连',
   'GEOSITE,microsoft@cn,本地直连',
   'GEOSITE,apple-cn,本地直连',
   'GEOSITE,steam@cn,本地直连',
-  'GEOSITE,category-games@cn,本地直连',
+
+  // 🤖 AI 服务 - 特殊处理
+  'GEOSITE,category-ai-!cn,ai',
+
+  // 🌍 国外服务代理 - 按重要性排序
+  'GEOSITE,youtube,节点选择',
+  'GEOSITE,google,节点选择',
+  'GEOSITE,twitter,节点选择',
+  'GEOSITE,github,节点选择',
+  'GEOSITE,spotify,节点选择',
+  'GEOSITE,onedrive,节点选择',
+  'GEOSITE,category-scholar-!cn,节点选择',
+
+  // 🌐 地理位置规则 - 范围较大的规则
   'GEOSITE,geolocation-!cn,节点选择',
+
+  // 🏴 中国网站直连 - 在具体规则后处理
   'GEOSITE,cn,本地直连',
-  // #GEOIP 规则
+
+  // 🔗 IP 规则 - 域名规则无法匹配时的备选
   'GEOIP,private,本地直连,no-resolve',
   'GEOIP,CN,本地直连',
+
+  // 🎯 兜底规则 - 必须放在最后
   'MATCH,漏网之鱼',
 ]
 
