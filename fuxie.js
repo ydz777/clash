@@ -104,9 +104,10 @@ const smartTemplate = {
   uselightgbm: true, // 使用轻量级GBM算法
   collectdata: true, // 收集延迟数据
   interval: 300, // 延迟测试间隔（秒）
+  strategy: 'sticky-sessions',
 }
 
-const baseProxies = ['智能优选', '延迟选优', '本地直连']
+const baseProxies = ['智能优选', '延迟选优', '香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点', '本地直连']
 
 // 🎨 图标基础 URL
 const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color'
@@ -136,18 +137,15 @@ const mainProxyGroups = [
     name: '智能优选',
     type: 'smart',
     'include-all': true,
-    // 'policy-priority': 'Premium:0.9;SG:1.3',
-    uselightgbm: true,
-    collectdata: true,
+    ...smartTemplate,
     filter: 'hysteria2',
-    strategy: 'sticky-sessions',
     icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
   },
   {
     ...urlTestTemplate,
     name: 'ai',
     type: 'select',
-    proxies: ['节点选择', '本地直连'],
+    proxies: baseProxies,
     'include-all': true,
     icon: `${iconsBaseUrl}/ASN.png`, // 🤖 AI 机器人
   },
@@ -175,6 +173,47 @@ const mainProxyGroups = [
     proxies: ['节点选择', '本地直连'],
     'include-all': true,
     icon: `${iconsBaseUrl}/Final.png`, // 兜底流量
+  },
+
+  {
+    ...smartTemplate,
+    name: '香港节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/HK.png`, // 🇭🇰 香港节点
+    filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)',
+  },
+  {
+    ...smartTemplate,
+    name: '台湾节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/TW.png`, // 🇹🇼 台湾节点
+    filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)',
+  },
+  {
+    ...smartTemplate,
+    name: '日本节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/JP.png`, // 🇯🇵 日本节点
+    filter: '(?i)(🇯🇵|日|jp|japan)',
+  },
+  {
+    ...smartTemplate,
+    name: '新加坡节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/SG.png`, // 🇸🇬 新加坡节点
+    filter: '(?i)(🇸🇬|新|sg|singapore)',
+  },
+  {
+    ...smartTemplate,
+    name: '美国节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/US.png`, // 🇺🇸 美国节点
+    filter: '(?i)(🇺🇸|美|us|unitedstates|united states)',
   },
 ]
 
