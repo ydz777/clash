@@ -22,11 +22,21 @@ const baseConfig = {
     ipv6: true,
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
+    'use-hosts': false,
+    'use-system-hosts': false,
+    'respect-rules': false,
+
     // 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染。但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
     nameserver: ['223.5.5.5', '119.29.29.29', 'https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
     // 用来解析「DNS 服务器域名」的 DNS，需要直接使用 IP
     'default-nameserver': ['119.29.29.29', '223.5.5.5'],
     'fake-ip-filter': [
+      '*',
+      '+.lan',
+      '+.local',
+      'time.*.com',
+      'ntp.*.com',
+      '+.market.xiaomi.com',
       // 国内域名
       'geosite:cn',
       'geosite:connectivity-check',
@@ -43,11 +53,13 @@ const baseConfig = {
     enable: true,
     stack: 'mixed',
     device: 'utun',
-    'endpoint-independent-nat': true,
+    'endpoint-independent-nat': false,
     'auto-route': true,
     'auto-detect-interface': true,
     'auto-redirect': true,
     'strict-route': true,
+    'dns-hijack': ['any:53'],
+    mtu: 1500,
   },
 
   // 💾 配置文件设置
@@ -69,7 +81,7 @@ const baseConfig = {
     },
     'skip-src-address': ['127.0.0.0/8', '192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12'],
     'force-domain': ['+.netflix.com', '+.hbo.com'],
-    'skip-domain': ['Mijia Cloud', '+.oray.com'],
+    'skip-domain': ['Mijia Cloud', '+.oray.com', '+.push.apple.com'],
   },
 
   'geo-auto-update': true,
