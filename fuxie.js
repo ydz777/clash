@@ -19,12 +19,12 @@ const baseConfig = {
   dns: {
     enable: true,
     listen: '0.0.0.0:7874',
-    ipv6: true,
+    ipv6: false,
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
     'use-hosts': false,
     'use-system-hosts': false,
-    'respect-rules': false,
+    'respect-rules': true,
 
     // 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染。但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
     nameserver: ['223.5.5.5', '119.29.29.29', 'https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
@@ -53,7 +53,7 @@ const baseConfig = {
     enable: true,
     stack: 'mixed',
     device: 'utun',
-    'endpoint-independent-nat': false,
+    'endpoint-independent-nat': true,
     'auto-route': true,
     'auto-detect-interface': true,
     'auto-redirect': true,
@@ -177,6 +177,14 @@ const mainProxyGroups = [
     'include-all': true,
     icon: `${iconsBaseUrl}/China.png`, // 🇨🇳 直连中国
   },
+  {
+    ...urlTestTemplate,
+    name: '广告拦截',
+    type: 'select',
+    proxies: ['REJECT', 'DIRECT'],
+    'include-all': true,
+    icon: `${iconsBaseUrl}/China.png`, // 🇨🇳 广告拦截
+  },
 
   {
     ...urlTestTemplate,
@@ -243,7 +251,7 @@ const ruleProviders = {
 // 📋 代理规则配置
 const proxyRules = [
   // 🚫 拦截规则 - 最高优先级
-  'GEOSITE,category-ads-all,REJECT',
+  'GEOSITE,category-ads-all,广告拦截',
 
   // 🏠 本地网络规则 - 第二优先级
   'GEOSITE,private,本地直连',
