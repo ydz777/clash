@@ -24,7 +24,7 @@ const baseConfig = {
     'fake-ip-range': '198.18.0.1/16',
     'use-hosts': false,
     'use-system-hosts': false,
-    'respect-rules': true,
+    'respect-rules': false,
 
     // 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染。但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
     nameserver: ['223.5.5.5', '119.29.29.29', 'https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
