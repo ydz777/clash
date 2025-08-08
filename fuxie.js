@@ -1,7 +1,7 @@
 // 📋 基础配置
 const baseConfig = {
   mode: 'rule',
-  ipv6: true,
+  ipv6: false,
   port: 7890,
   'mixed-port': 7891,
   'allow-lan': true,
@@ -56,7 +56,7 @@ const baseConfig = {
     'endpoint-independent-nat': true,
     'auto-route': true,
     'auto-detect-interface': true,
-    'auto-redirect': true,
+    // 'auto-redirect': true,
     'strict-route': true,
     'dns-hijack': ['any:53'],
     mtu: 1500,
