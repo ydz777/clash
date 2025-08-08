@@ -52,7 +52,6 @@ const baseConfig = {
   tun: {
     enable: true,
     stack: 'mixed',
-    device: 'utun',
     'endpoint-independent-nat': true,
     'auto-route': true,
     'auto-detect-interface': true,
