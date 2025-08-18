@@ -2,8 +2,7 @@
 const baseConfig = {
   mode: 'rule',
   ipv6: false,
-  port: 7890,
-  'mixed-port': 7891,
+  'mixed-port': 7890,
   'allow-lan': true,
   'log-level': 'info',
   'find-process-mode': 'strict', // 控制是否让Clash去匹配进程  always开启，强制匹配所有进程  strict默认，由Clash判断是否开启  off不匹配进程，推荐在路由器上使用此模式
@@ -18,34 +17,27 @@ const baseConfig = {
   // 🌐 DNS 配置
   dns: {
     enable: true,
-    listen: '0.0.0.0:7874',
+    listen: '0.0.0.0:7874', // 仅本机
     ipv6: false,
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
     'use-hosts': false,
     'use-system-hosts': false,
-    'respect-rules': false,
+    'respect-rules': true,
 
-    // 用来解析没有匹配到任何「域名规则」的域名，通常是国外域名，建议使用国外 DoH 防止污染。但这个解析结果并不会用来发起连接，所以为了追求速度不使用 DoH 或直接使用国内 DNS 也行。
-    nameserver: ['223.5.5.5', '119.29.29.29', 'https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
-    // 用来解析「DNS 服务器域名」的 DNS，需要直接使用 IP
+    // 默认快解析：国内
+    nameserver: ['223.5.5.5', '119.29.29.29'],
     'default-nameserver': ['119.29.29.29', '223.5.5.5'],
-    'fake-ip-filter': [
-      '*',
-      '+.lan',
-      '+.local',
-      'time.*.com',
-      'ntp.*.com',
-      '+.market.xiaomi.com',
-      // 国内域名
-      'geosite:cn',
-      'geosite:connectivity-check',
-      'geosite:private',
-    ],
-    // 用来解析「代理服务器域名」，防止 nameserver 无法访问导致连不上代理。 比如上个月国外 DoH 大规模被墙，很多 nameserver 设置为国外 DoH，又没有设置 proxy-server-nameserver 的人就连不上代理了（我自己就是）。
-    'proxy-server-nameserver': ['223.5.5.5', '119.29.29.29', 'https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
-    // 「直连」域名的解析，这里用了 DoH 来防止劫持。直接用运营商的 DNS 也行，愿意自建 smartdns / adgurad home 等服务效果更好。
+    'proxy-server-nameserver': ['223.5.5.5', '119.29.29.29'],
     'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query'],
+
+    // 针对境外域名用 DoH，降低污染
+    'nameserver-policy': {
+      'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
+    },
+
+    // 重要：不要使用 '*'
+    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'],
   },
 
   // 🔗 Tun 配置
@@ -58,7 +50,7 @@ const baseConfig = {
     // 'auto-redirect': true,
     'strict-route': true,
     'dns-hijack': ['any:53'],
-    mtu: 1500,
+    mtu: 1460,
   },
 
   // 💾 配置文件设置
@@ -71,7 +63,7 @@ const baseConfig = {
   sniffer: {
     enable: true,
     'force-dns-mapping': false,
-    'parse-pure-ip': false,
+    'parse-pure-ip': true,
     'override-destination': true,
     sniff: {
       TLS: { ports: [443, 8443] },
@@ -80,7 +72,7 @@ const baseConfig = {
     },
     'skip-src-address': ['127.0.0.0/8', '192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12'],
     'force-domain': ['+.netflix.com', '+.hbo.com'],
-    'skip-domain': ['Mijia Cloud', '+.oray.com', '+.push.apple.com'],
+    'skip-domain': ['+.mi.com', '+.oray.com', '+.push.apple.com'], // 使用真实域名通配
   },
 
   'geo-auto-update': true,
@@ -149,7 +141,7 @@ const mainProxyGroups = [
     type: 'smart',
     'include-all': true,
     ...smartTemplate,
-    filter: '(?i)(hysteria2|tuic)',
+    // filter: '(?i)(hysteria2|tuic)',
     icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
   },
   {
