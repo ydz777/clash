@@ -146,7 +146,7 @@ const mainProxyGroups = [
   },
   {
     ...urlTestTemplate,
-    name: 'ai',
+    name: 'AI',
     type: 'select',
     proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
     'include-all': true,
@@ -254,7 +254,7 @@ const proxyRules = [
   'GEOSITE,steam@cn,本地直连',
 
   // 🤖 AI 服务 - 特殊处理
-  'GEOSITE,category-ai-!cn,ai',
+  'GEOSITE,category-ai-!cn,AI',
 
   // 🌍 国外服务代理 - 按重要性排序
   'GEOSITE,youtube,节点选择',
