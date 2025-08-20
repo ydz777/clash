@@ -23,7 +23,7 @@ const baseConfig = {
     'fake-ip-range': '198.18.0.1/16',
     'use-hosts': false,
     'use-system-hosts': false,
-    'respect-rules': true,
+    'respect-rules': false, // 是否尊重规则
 
     // 默认快解析：国内
     nameserver: ['223.5.5.5', '119.29.29.29'],
