@@ -142,7 +142,7 @@ const mainProxyGroups = [
     'include-all': true,
     ...smartTemplate,
     filter: '(?i)(hysteria2|tuic)',
-    // icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
+    icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
   },
   {
     ...urlTestTemplate,
