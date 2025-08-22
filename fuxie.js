@@ -48,7 +48,7 @@ const baseConfig = {
     'auto-route': true,
     'auto-detect-interface': true,
     // 'auto-redirect': true,
-    'strict-route': true,
+    'strict-route': false,
     'dns-hijack': ['any:53'],
     mtu: 1460,
   },
