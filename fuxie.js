@@ -141,8 +141,8 @@ const mainProxyGroups = [
     type: 'smart',
     'include-all': true,
     ...smartTemplate,
-    // filter: '(?i)(hysteria2|tuic)',
-    icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
+    filter: '(?i)(hysteria2|tuic)',
+    // icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
   },
   {
     ...urlTestTemplate,
