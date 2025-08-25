@@ -92,9 +92,9 @@ const baseConfig = {
 
 // 🎛️ 延迟测试代理组基础配置模板
 const urlTestTemplate = {
-  interval: 300, // 延迟测试间隔（秒）
+  interval: 600, // 延迟测试间隔（秒）
   timeout: 3000, // 超时时间（毫秒）
-  url: 'http://www.gstatic.com/generate_204', // 测试 URL
+  url: 'https://www.apple.com/library/test/success.html', // 测试 URL
   lazy: true, // 懒加载模式
   'max-failed-times': 3, // 最大失败次数
   hidden: false, // 是否隐藏
@@ -106,7 +106,7 @@ const smartTemplate = {
   'include-all': true,
   uselightgbm: true, // 使用轻量级GBM算法
   collectdata: true, // 收集延迟数据
-  interval: 300, // 延迟测试间隔（秒）
+  interval: 600, // 延迟测试间隔（秒）
   strategy: 'sticky-sessions',
 }
 
