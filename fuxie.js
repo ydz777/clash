@@ -2,7 +2,7 @@
 const baseConfig = {
   mode: 'rule', // 规则模式
   'log-level': 'info', // 日志等级
-  ipv6: false,
+  ipv6: false, // 是否启用 IPv6
 
   // 端口设置
   'mixed-port': 7890, // 混合端口(HTTP+SOCKS)
@@ -145,21 +145,91 @@ const mainProxyGroups = [
     'include-all': true,
     icon: `${iconsBaseUrl}/ASN.png`,
   },
-  { ...urlTestTemplate, name: '延迟选优', type: 'url-test', tolerance: 100, 'include-all': true, icon: `${iconsBaseUrl}/Urltest.png` }, // 延迟自动测速
-  { ...urlTestTemplate, name: '本地直连', type: 'select', proxies: ['DIRECT'], 'include-all': true, icon: `${iconsBaseUrl}/China.png` }, // 直连通道
-  { ...urlTestTemplate, name: '广告拦截', type: 'select', proxies: ['REJECT', 'DIRECT'], 'include-all': true, icon: `${iconsBaseUrl}/China.png` }, // 广告处理
-  { ...urlTestTemplate, name: '漏网之鱼', type: 'select', proxies: ['节点选择', '本地直连'], 'include-all': true, icon: `${iconsBaseUrl}/Final.png` }, // 兜底策略
+  {
+    ...urlTestTemplate,
+    name: '延迟选优', // 延迟自动测速
+    type: 'url-test',
+    tolerance: 100,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/Urltest.png`,
+  },
+  {
+    ...urlTestTemplate,
+    name: '本地直连', // 直连通道
+    type: 'select',
+    proxies: ['DIRECT'],
+    'include-all': true,
+    icon: `${iconsBaseUrl}/China.png`,
+  },
+  {
+    ...urlTestTemplate,
+    name: '广告拦截', // 广告处理
+    type: 'select',
+    proxies: ['REJECT', 'DIRECT'],
+    'include-all': true,
+    icon: `${iconsBaseUrl}/China.png`,
+  },
+  {
+    ...urlTestTemplate,
+    name: '漏网之鱼', // 兜底策略
+    type: 'select',
+    proxies: ['节点选择', '本地直连'],
+    'include-all': true,
+    icon: `${iconsBaseUrl}/Final.png`,
+  },
 
-  { ...smartTemplate, name: '香港节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/HK.png`, filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
-  { ...smartTemplate, name: '台湾节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/TW.png`, filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
-  { ...smartTemplate, name: '日本节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/JP.png`, filter: '(?i)(🇯🇵|日|jp|japan)' },
-  { ...smartTemplate, name: '新加坡节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/SG.png`, filter: '(?i)(🇸🇬|新|sg|singapore)' },
-  { ...smartTemplate, name: '美国节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/US.png`, filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
+  {
+    ...smartTemplate,
+    name: '香港节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/HK.png`,
+    filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)',
+  },
+  {
+    ...smartTemplate,
+    name: '台湾节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/TW.png`,
+    filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)',
+  },
+  {
+    ...smartTemplate,
+    name: '日本节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/JP.png`,
+    filter: '(?i)(🇯🇵|日|jp|japan)',
+  },
+  {
+    ...smartTemplate,
+    name: '新加坡节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/SG.png`,
+    filter: '(?i)(🇸🇬|新|sg|singapore)',
+  },
+  {
+    ...smartTemplate,
+    name: '美国节点',
+    tolerance: 50,
+    'include-all': true,
+    icon: `${iconsBaseUrl}/US.png`,
+    filter: '(?i)(🇺🇸|美|us|unitedstates|united states)',
+  },
 ]
 
 // 规则提供者
 const ruleProviders = {
-  cn: { type: 'http', interval: 86400, behavior: 'domain', format: 'text', url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.yaml' }, // 中国域名集
+  // 中国域名集
+  cn: {
+    type: 'http',
+    interval: 86400,
+    behavior: 'domain',
+    format: 'text',
+    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.yaml',
+  },
 }
 
 // 规则
