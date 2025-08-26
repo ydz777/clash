@@ -1,309 +1,211 @@
-// 📋 基础配置
+// 基础运行配置
 const baseConfig = {
-  mode: 'rule',
+  mode: 'rule', // 规则模式
+  'log-level': 'info', // 日志等级
   ipv6: false,
-  'mixed-port': 7890,
-  'allow-lan': true,
-  'log-level': 'info',
-  'find-process-mode': 'strict', // 控制是否让Clash去匹配进程  always开启，强制匹配所有进程  strict默认，由Clash判断是否开启  off不匹配进程，推荐在路由器上使用此模式
 
-  // 🎛️ 外部控制器配置
-  'external-controller': '0.0.0.0:9090',
-  secret: '123456',
-  'external-ui': 'ui',
-  'external-ui-name': 'zashboard',
-  'external-ui-url': 'https://gh-proxy.com/github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip',
+  // 端口设置
+  'mixed-port': 7890, // 混合端口(HTTP+SOCKS)
+  'socks-port': 7891, // SOCKS5 端口
+  port: 7892, // HTTP 代理端口
+  'bind-address': '*', // 监听地址(*) 表示所有网卡
 
-  // 🌐 DNS 配置
+  // 局域网访问
+  'allow-lan': true, // 允许局域网访问
+  'lan-allowed-ips': ['0.0.0.0/0', '::/0'], // 局域网允许访问的网段
+  'skip-auth-prefixes': ['127.0.0.1/32'], // 跳过鉴权的来源网段
+
+  // 行为控制
+  'find-process-mode': 'strict', // 进程匹配模式: strict 更准确
+  'unified-delay': true, // 统一延迟: 展示同一延迟
+  'tcp-concurrent': true, // TCP 并发拨号
+
+  // 外部控制
+  'external-controller': '0.0.0.0:9090', // 外部控制接口
+  secret: '9527', // 外部控制密钥
+  'external-ui': 'ui', // 外部面板目录
+  'external-ui-name': 'zashboard', // 面板名称
+  'external-ui-url': 'https://gh-proxy.com/github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip', // 面板下载地址
+
+  // DNS 配置
   dns: {
-    enable: true,
-    listen: '0.0.0.0:7874', // 仅本机
-    ipv6: false,
-    'enhanced-mode': 'fake-ip',
-    'fake-ip-range': '198.18.0.1/16',
-    'use-hosts': false,
-    'use-system-hosts': false,
-    'respect-rules': false, // 是否尊重规则
-
-    // 默认快解析：国内
-    nameserver: ['223.5.5.5', '119.29.29.29'],
-    'default-nameserver': ['119.29.29.29', '223.5.5.5'],
-    'proxy-server-nameserver': ['223.5.5.5', '119.29.29.29'],
-    'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query'],
-
-    // 针对境外域名用 DoH，降低污染
+    enable: true, // 启用内置 DNS
+    listen: '0.0.0.0:7874', // DNS 监听地址
+    ipv6: false, // DNS 是否启用 IPv6
+    'enhanced-mode': 'fake-ip', // 增强模式: fake-ip
+    'fake-ip-range': '198.18.0.1/16', // fake-ip 网段
+    nameserver: ['223.5.5.5', '119.29.29.29'], // 默认上游 DNS
+    'default-nameserver': ['119.29.29.29', '223.5.5.5'], // 系统解析回落
+    'proxy-server-nameserver': ['223.5.5.5', '119.29.29.29'], // 代理用的上游 DNS
+    'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query'], // 直连用的 DoH
     'nameserver-policy': {
-      'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'],
+      'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
     },
-
-    // 重要：不要使用 '*'
-    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'],
+    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip 的域
   },
 
-  // 🔗 Tun 配置
+  // Tun 内核
   tun: {
-    enable: true,
-    stack: 'mixed',
-    'endpoint-independent-nat': true,
-    'auto-route': true,
-    'auto-detect-interface': true,
-    // 'auto-redirect': true,
-    'strict-route': false,
-    'dns-hijack': ['any:53'],
-    mtu: 1460,
+    enable: true, // 启用 Tun
+    stack: 'mixed', // 内核栈: 混合
+    mtu: 1460, // 最大传输单元
+    'endpoint-independent-nat': true, // 独立 NAT
+    'auto-route': true, // 自动路由
+    'auto-detect-interface': true, // 自动识别出口
+    'dns-hijack': ['any:53'], // 劫持 DNS 53 端口
   },
 
-  // 💾 配置文件设置
+  // 配置存储
   profile: {
-    'store-selected': true,
-    'store-fake-ip': true,
+    'store-selected': true, // 记住策略选择
+    'store-fake-ip': true, // 持久化 fake-ip
   },
 
-  // 🔍 流量嗅探配置
+  // 流量嗅探
   sniffer: {
-    enable: true,
-    'force-dns-mapping': false,
-    'parse-pure-ip': true,
-    'override-destination': true,
+    enable: true, // 启用流量嗅探
+    'parse-pure-ip': true, // 解析纯 IP SNI
+    'override-destination': true, // 覆盖目标地址
     sniff: {
-      TLS: { ports: [443, 8443] },
-      HTTP: { ports: [80, 8080, 8081, 8090] },
-      QUIC: { ports: [443, 8443] },
+      TLS: { ports: [443, 8443] }, // TLS 端口
+      HTTP: { ports: [80, 8080, 8081, 8090] }, // HTTP 端口
+      QUIC: { ports: [443, 8443] }, // QUIC 端口
     },
-    'skip-src-address': ['127.0.0.0/8', '192.168.0.0/16', '10.0.0.0/8', '172.16.0.0/12'],
-    'force-domain': ['+.netflix.com', '+.hbo.com'],
-    'skip-domain': ['+.mi.com', '+.oray.com', '+.push.apple.com'], // 使用真实域名通配
+    'force-domain': ['+.netflix.com', '+.hbo.com'], // 强制嗅探域名
+    'skip-domain': ['+.mi.com', '+.oray.com', '+.push.apple.com'], // 跳过嗅探域名
   },
 
-  'geo-auto-update': true,
-  'geo-update-interval': 24,
-  'geodata-mode': true,
-  'unified-delay': true, // 开启统一延迟时，会计算 RTT，以消除连接握手等带来的不同类型节点的延迟差异，（不使用统一延迟检测，有些节点前戏太慢了）
-  'tcp-concurrent': true, // TCP并发 如果解析出多个ip，同时对所有ip进行连接，返回延迟最低的地址
-
-  // 🗺️ 地理位置数据配置
-  geox: {
-    geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat',
-    geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
-    mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb',
-    asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb',
+  // Geo 数据
+  'geodata-mode': true, // 使用 geodata.dat
+  'geo-auto-update': true, // 自动更新 Geo 数据
+  'geo-update-interval': 24, // 更新间隔(小时)
+  'geox-url': {
+    geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat', // IP 数据库
+    geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat', // 域名库
+    mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb', // 国家库
+    asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb', // ASN 库
   },
 }
 
-// 🎛️ 延迟测试代理组基础配置模板
+// 模板配置
 const urlTestTemplate = {
-  interval: 600, // 延迟测试间隔（秒）
-  timeout: 3000, // 超时时间（毫秒）
-  url: 'https://www.apple.com/library/test/success.html', // 测试 URL
-  lazy: true, // 懒加载模式
+  interval: 600, // 延迟测试间隔(秒)
+  timeout: 3000, // 测速超时(ms)
+  url: 'https://www.apple.com/library/test/success.html', // 测速 URL
+  lazy: true, // 懒触发
   'max-failed-times': 3, // 最大失败次数
-  hidden: false, // 是否隐藏
+  hidden: false, // 是否在面板隐藏
 }
 
-// 🧠 智能代理组基础配置模板
 const smartTemplate = {
-  type: 'smart',
-  'include-all': true,
-  uselightgbm: true, // 使用轻量级GBM算法
-  collectdata: true, // 收集延迟数据
-  interval: 600, // 延迟测试间隔（秒）
-  strategy: 'sticky-sessions',
+  type: 'smart', // 智能分流组
+  'include-all': true, // 包含全部节点
+  uselightgbm: true, // 启用轻量 GBM 评估
+  collectdata: true, // 采集统计数据
+  interval: 600, // 评估间隔(秒)
+  strategy: 'sticky-sessions', // 会话粘性
 }
 
-const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点']
+const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点'] // 区域节点子组
+const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color' // 图标基础地址
 
-// 🎨 图标基础 URL
-const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color'
-
-// 🚀 主要代理组配置
+// 代理组
 const mainProxyGroups = [
+  // 总入口: 统一选择策略
   {
     ...urlTestTemplate,
-    name: '节点选择',
-    type: 'select',
-    proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
-    // 'include-all': true,
-    icon: `${iconsBaseUrl}/Global.png`, // 🌐 全局选择
+    name: '节点选择', // 主策略入口
+    type: 'select', // 手动选择
+    proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'], // 候选策略
+    icon: `${iconsBaseUrl}/Global.png`, // 面板图标
   },
-
+  // 纯手动选择
   {
     ...urlTestTemplate,
-    name: '手动选择',
+    name: '手动选择', // 仅手动切换
     type: 'select',
     proxies: ['智能优选', '延迟选优', ...baseProxies, '本地直连'],
     'include-all': true,
-    icon: `${iconsBaseUrl}/Static.png`, // 🛠️ 手动选择
+    icon: `${iconsBaseUrl}/Static.png`,
   },
-
   {
     ...urlTestTemplate,
-    name: '智能优选',
+    name: '智能优选', // 机器学习选优
     type: 'smart',
     'include-all': true,
     ...smartTemplate,
-    filter: '(?i)(hysteria2|tuic)',
-    icon: `${iconsBaseUrl}/Speedtest.png`, // 🚀 智能测速
+    filter: '(?i)(hysteria2|tuic)', // 只筛选新协议
+    icon: `${iconsBaseUrl}/Speedtest.png`,
   },
   {
     ...urlTestTemplate,
-    name: 'AI',
+    name: 'AI', // AI 相关流量专用
     type: 'select',
     proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
     'include-all': true,
-    icon: `${iconsBaseUrl}/ASN.png`, // 🤖 AI 机器人
+    icon: `${iconsBaseUrl}/ASN.png`,
   },
-  {
-    ...urlTestTemplate,
-    name: '延迟选优',
-    type: 'url-test',
-    tolerance: 100, // 延迟容差
-    'include-all': true,
-    icon: `${iconsBaseUrl}/Urltest.png`, // ⏱️ 延迟测试
-  },
-  {
-    ...urlTestTemplate,
-    name: '本地直连',
-    type: 'select',
-    proxies: ['DIRECT'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/China.png`, // 🇨🇳 直连中国
-  },
-  {
-    ...urlTestTemplate,
-    name: '广告拦截',
-    type: 'select',
-    proxies: ['REJECT', 'DIRECT'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/China.png`, // 🇨🇳 广告拦截
-  },
+  { ...urlTestTemplate, name: '延迟选优', type: 'url-test', tolerance: 100, 'include-all': true, icon: `${iconsBaseUrl}/Urltest.png` }, // 延迟自动测速
+  { ...urlTestTemplate, name: '本地直连', type: 'select', proxies: ['DIRECT'], 'include-all': true, icon: `${iconsBaseUrl}/China.png` }, // 直连通道
+  { ...urlTestTemplate, name: '广告拦截', type: 'select', proxies: ['REJECT', 'DIRECT'], 'include-all': true, icon: `${iconsBaseUrl}/China.png` }, // 广告处理
+  { ...urlTestTemplate, name: '漏网之鱼', type: 'select', proxies: ['节点选择', '本地直连'], 'include-all': true, icon: `${iconsBaseUrl}/Final.png` }, // 兜底策略
 
-  {
-    ...urlTestTemplate,
-    name: '漏网之鱼',
-    type: 'select',
-    proxies: ['节点选择', '本地直连'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/Final.png`, // 兜底流量
-  },
-
-  {
-    ...smartTemplate,
-    name: '香港节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/HK.png`, // 🇭🇰 香港节点
-    filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)',
-  },
-  {
-    ...smartTemplate,
-    name: '台湾节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/TW.png`, // 🇹🇼 台湾节点
-    filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)',
-  },
-  {
-    ...smartTemplate,
-    name: '日本节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/JP.png`, // 🇯🇵 日本节点
-    filter: '(?i)(🇯🇵|日|jp|japan)',
-  },
-  {
-    ...smartTemplate,
-    name: '新加坡节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/SG.png`, // 🇸🇬 新加坡节点
-    filter: '(?i)(🇸🇬|新|sg|singapore)',
-  },
-  {
-    ...smartTemplate,
-    name: '美国节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/US.png`, // 🇺🇸 美国节点
-    filter: '(?i)(🇺🇸|美|us|unitedstates|united states)',
-  },
+  { ...smartTemplate, name: '香港节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/HK.png`, filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
+  { ...smartTemplate, name: '台湾节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/TW.png`, filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
+  { ...smartTemplate, name: '日本节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/JP.png`, filter: '(?i)(🇯🇵|日|jp|japan)' },
+  { ...smartTemplate, name: '新加坡节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/SG.png`, filter: '(?i)(🇸🇬|新|sg|singapore)' },
+  { ...smartTemplate, name: '美国节点', tolerance: 50, 'include-all': true, icon: `${iconsBaseUrl}/US.png`, filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
 ]
 
-// 📚 规则提供者配置
+// 规则提供者
 const ruleProviders = {
-  cn: {
-    type: 'http',
-    interval: 86400,
-    behavior: 'domain',
-    format: 'text',
-    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.yaml',
-  },
+  cn: { type: 'http', interval: 86400, behavior: 'domain', format: 'text', url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.yaml' }, // 中国域名集
 }
 
-// 📋 代理规则配置
+// 规则
 const proxyRules = [
-  // 🚫 拦截规则 - 最高优先级
-  'GEOSITE,category-ads-all,广告拦截',
-
-  // 🏠 本地网络规则 - 第二优先级
-  'GEOSITE,private,本地直连',
-
-  // 🇨🇳 国内服务直连 - 在代理规则前处理
-  'GEOSITE,category-games@cn,本地直连',
-  'GEOSITE,microsoft@cn,本地直连',
-  'GEOSITE,apple-cn,本地直连',
-  'GEOSITE,steam@cn,本地直连',
-
-  // 🤖 AI 服务 - 特殊处理
-  'GEOSITE,category-ai-!cn,AI',
-
-  // 🌍 国外服务代理 - 按重要性排序
-  'GEOSITE,youtube,节点选择',
-  'GEOSITE,google,节点选择',
-  'GEOSITE,twitter,节点选择',
-  'GEOSITE,github,节点选择',
-  'GEOSITE,spotify,节点选择',
-  'GEOSITE,onedrive,节点选择',
-  'GEOSITE,category-scholar-!cn,节点选择',
-
-  // 🌐 地理位置规则 - 范围较大的规则
-  'GEOSITE,geolocation-!cn,节点选择',
-
-  // 🏴 中国网站直连 - 在具体规则后处理
-  'GEOSITE,cn,本地直连',
-
-  // 🔗 IP 规则 - 域名规则无法匹配时的备选
-  'GEOIP,private,本地直连,no-resolve',
-  'GEOIP,CN,本地直连',
-
-  // 🎯 兜底规则 - 必须放在最后
-  'MATCH,漏网之鱼',
+  'GEOSITE,category-ads-all,广告拦截', // 广告域名 → 拦截
+  'GEOSITE,private,本地直连', // 私有域 → 直连
+  'GEOSITE,category-games@cn,本地直连', // 国内游戏 → 直连
+  'GEOSITE,microsoft@cn,本地直连', // 微软国内 → 直连
+  'GEOSITE,apple-cn,本地直连', // 苹果中国 → 直连
+  'GEOSITE,steam@cn,本地直连', // Steam 国内 → 直连
+  'GEOSITE,category-ai-!cn,AI', // 海外 AI → AI 组
+  'GEOSITE,youtube,节点选择', // YouTube → 节点
+  'GEOSITE,google,节点选择', // Google → 节点
+  'GEOSITE,twitter,节点选择', // X/Twitter → 节点
+  'GEOSITE,github,节点选择', // GitHub → 节点
+  'GEOSITE,spotify,节点选择', // Spotify → 节点
+  'GEOSITE,onedrive,节点选择', // OneDrive → 节点
+  'GEOSITE,category-scholar-!cn,节点选择', // 海外学术 → 节点
+  'GEOSITE,geolocation-!cn,节点选择', // 海外常用 → 节点
+  'GEOSITE,cn,本地直连', // 中国域名 → 直连
+  'GEOIP,private,本地直连,no-resolve', // 私有网段 → 直连
+  'GEOIP,CN,本地直连', // 中国 IP → 直连
+  'MATCH,漏网之鱼', // 兜底规则
 ]
 
-// 🚀 程序主入口函数
+// 主入口: 合并外部配置与内置模板并校验
 function main(config) {
   console.log('🎯 开始处理 Clash 配置...')
-
-  const proxyCount = config?.proxies?.length ?? 0
-  const proxyProviderCount = typeof config?.['proxy-providers'] === 'object' ? Object.keys(config['proxy-providers']).length : 0
-
+  const proxyCount = config?.proxies?.length ?? 0 // 节点数量
+  const proxyProviderCount = typeof config?.['proxy-providers'] === 'object' ? Object.keys(config['proxy-providers']).length : 0 // 提供者数量
   console.log(`📊 检测到 ${proxyCount} 个代理节点, ${proxyProviderCount} 个代理提供者`)
 
-  // 验证配置有效性
   if (proxyCount === 0 && proxyProviderCount === 0) {
     console.error('❌ 配置文件中未找到任何代理')
     throw new Error('配置文件中未找到任何代理')
   }
 
-  // 构建最终配置
   const finalConfig = {
     ...baseConfig,
     ...config,
     proxies: config?.proxies || [],
     'proxy-groups': mainProxyGroups,
     'rule-providers': ruleProviders,
-    rules: proxyRules,
+    rules: proxyRules, // 规则列表(顺序匹配)
   }
 
   console.log('✅ Clash 配置处理完成!')
-  return finalConfig
+  return finalConfig // 返回最终配置
 }
