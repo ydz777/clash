@@ -1,9 +1,5 @@
 // 基础运行配置
 const baseConfig = {
-  mode: 'rule', // 规则模式
-  'log-level': 'info', // 日志等级
-  ipv6: false, // 是否启用 IPv6
-
   // 端口设置
   'mixed-port': 7890, // 混合端口(HTTP+SOCKS)
   'socks-port': 7891, // SOCKS5 端口
@@ -14,6 +10,11 @@ const baseConfig = {
   'allow-lan': true, // 允许局域网访问
   'lan-allowed-ips': ['0.0.0.0/0', '::/0'], // 局域网允许访问的网段
   'skip-auth-prefixes': ['127.0.0.1/32'], // 跳过鉴权的来源网段
+
+  // 通用设置
+  mode: 'rule', // 规则模式
+  'log-level': 'info', // 日志等级
+  ipv6: false, // 是否启用 IPv6
 
   // 行为控制
   'find-process-mode': 'strict', // 进程匹配模式: strict 更准确
@@ -27,13 +28,25 @@ const baseConfig = {
   'external-ui-name': 'zashboard', // 面板名称
   'external-ui-url': 'https://gh-proxy.com/github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip', // 面板下载地址
 
+  // Geo 数据
+  'geodata-mode': true, // 使用 geodata.dat
+  'geo-auto-update': true, // 自动更新 Geo 数据
+  'geo-update-interval': 24, // 更新间隔(小时)
+  'geox-url': {
+    geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat', // 域名库
+    geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat', // IP 数据库
+    mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb', // 国家库
+    asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb', // ASN 库
+  },
+
   // DNS 配置
   dns: {
     enable: true, // 启用内置 DNS
-    listen: '0.0.0.0:7874', // DNS 监听地址
     ipv6: false, // DNS 是否启用 IPv6
+    listen: '0.0.0.0:7874', // DNS 监听地址
     'enhanced-mode': 'fake-ip', // 增强模式: fake-ip
     'fake-ip-range': '198.18.0.1/16', // fake-ip 网段
+    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip 的域
     nameserver: ['223.5.5.5', '119.29.29.29'], // 默认上游 DNS
     'default-nameserver': ['119.29.29.29', '223.5.5.5'], // 系统解析回落
     'proxy-server-nameserver': ['223.5.5.5', '119.29.29.29'], // 代理用的上游 DNS
@@ -41,24 +54,17 @@ const baseConfig = {
     'nameserver-policy': {
       'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
     },
-    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip 的域
   },
 
   // Tun 内核
   tun: {
     enable: true, // 启用 Tun
     stack: 'mixed', // 内核栈: 混合
-    mtu: 1460, // 最大传输单元
-    'endpoint-independent-nat': true, // 独立 NAT
     'auto-route': true, // 自动路由
     'auto-detect-interface': true, // 自动识别出口
     'dns-hijack': ['any:53'], // 劫持 DNS 53 端口
-  },
-
-  // 配置存储
-  profile: {
-    'store-selected': true, // 记住策略选择
-    'store-fake-ip': true, // 持久化 fake-ip
+    'endpoint-independent-nat': true, // 独立 NAT
+    mtu: 1460, // 最大传输单元
   },
 
   // 流量嗅探
@@ -71,27 +77,22 @@ const baseConfig = {
       HTTP: { ports: [80, 8080, 8081, 8090] }, // HTTP 端口
       QUIC: { ports: [443, 8443] }, // QUIC 端口
     },
-    'force-domain': ['+.netflix.com', '+.hbo.com'], // 强制嗅探域名
     'skip-domain': ['+.mi.com', '+.oray.com', '+.push.apple.com'], // 跳过嗅探域名
+    'force-domain': ['+.netflix.com', '+.hbo.com'], // 强制嗅探域名
   },
 
-  // Geo 数据
-  'geodata-mode': true, // 使用 geodata.dat
-  'geo-auto-update': true, // 自动更新 Geo 数据
-  'geo-update-interval': 24, // 更新间隔(小时)
-  'geox-url': {
-    geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat', // IP 数据库
-    geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat', // 域名库
-    mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb', // 国家库
-    asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb', // ASN 库
+  // 配置存储
+  profile: {
+    'store-selected': true, // 记住策略选择
+    'store-fake-ip': true, // 持久化 fake-ip
   },
 }
 
 // 模板配置
 const urlTestTemplate = {
+  url: 'https://www.apple.com/library/test/success.html', // 测速 URL
   interval: 600, // 延迟测试间隔(秒)
   timeout: 3000, // 测速超时(ms)
-  url: 'https://www.apple.com/library/test/success.html', // 测速 URL
   lazy: true, // 懒触发
   'max-failed-times': 3, // 最大失败次数
   hidden: false, // 是否在面板隐藏
@@ -100,10 +101,10 @@ const urlTestTemplate = {
 const smartTemplate = {
   type: 'smart', // 智能分流组
   'include-all': true, // 包含全部节点
+  strategy: 'sticky-sessions', // 会话粘性
+  interval: 600, // 评估间隔(秒)
   uselightgbm: true, // 启用轻量 GBM 评估
   collectdata: true, // 采集统计数据
-  interval: 600, // 评估间隔(秒)
-  strategy: 'sticky-sessions', // 会话粘性
 }
 
 const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点'] // 区域节点子组
@@ -161,14 +162,14 @@ const mainProxyGroups = [
     'include-all': true,
     icon: `${iconsBaseUrl}/China.png`,
   },
-  {
-    ...urlTestTemplate,
-    name: '广告拦截', // 广告处理
-    type: 'select',
-    proxies: ['REJECT', 'DIRECT'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/China.png`,
-  },
+  // {
+  //   ...urlTestTemplate,
+  //   name: '广告拦截', // 广告处理
+  //   type: 'select',
+  //   proxies: ['REJECT', 'DIRECT'],
+  //   'include-all': true,
+  //   icon: `${iconsBaseUrl}/China.png`,
+  // },
   {
     ...urlTestTemplate,
     name: '漏网之鱼', // 兜底策略
@@ -225,16 +226,16 @@ const ruleProviders = {
   // 中国域名集
   cn: {
     type: 'http',
-    interval: 86400,
     behavior: 'domain',
     format: 'text',
     url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.yaml',
+    interval: 86400,
   },
 }
 
 // 规则
 const proxyRules = [
-  'GEOSITE,category-ads-all,广告拦截', // 广告域名 → 拦截
+  // 'GEOSITE,category-ads-all,广告拦截', // 广告域名 → 拦截
   'GEOSITE,private,本地直连', // 私有域 → 直连
   'GEOSITE,category-games@cn,本地直连', // 国内游戏 → 直连
   'GEOSITE,microsoft@cn,本地直连', // 微软国内 → 直连
