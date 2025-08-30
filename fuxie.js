@@ -44,6 +44,7 @@ const baseConfig = {
     enable: true, // 启用内置 DNS
     ipv6: false, // DNS 是否启用 IPv6
     listen: '0.0.0.0:7874', // DNS 监听地址
+    'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip', // 增强模式: fake-ip
     'fake-ip-range': '198.18.0.1/16', // fake-ip 网段
     'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip 的域
