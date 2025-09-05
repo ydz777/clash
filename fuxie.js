@@ -44,13 +44,16 @@ const baseConfig = {
     enable: true, // 启用内置 DNS
     ipv6: false, // DNS 是否启用 IPv6
     listen: '0.0.0.0:7874', // DNS 监听地址
+    'use-hosts': false,
+    'use-system-hosts': false,
+    'respect-rules': false,
     'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip', // 增强模式: fake-ip
     'fake-ip-range': '198.18.0.1/16', // fake-ip 网段
     'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip 的域
-    nameserver: ['223.5.5.5', '119.29.29.29'], // 默认上游 DNS
-    'default-nameserver': ['119.29.29.29', '223.5.5.5'], // 系统解析回落
-    'proxy-server-nameserver': ['223.5.5.5', '119.29.29.29'], // 代理用的上游 DNS
+    nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 默认上游 DNS
+    'default-nameserver': ['tls://223.5.5.5'], // 系统解析回落
+    'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 代理用的上游 DNS
     'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query'], // 直连用的 DoH
     'nameserver-policy': {
       'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
