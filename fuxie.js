@@ -55,9 +55,9 @@ const baseConfig = {
     'default-nameserver': ['tls://223.5.5.5'], // 系统解析回落
     'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 代理用的上游 DNS
     'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query'], // 直连用的 DoH
-    'nameserver-policy': {
-      'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
-    },
+    // 'nameserver-policy': {
+    //   'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
+    // },
   },
 
   // Tun 内核
