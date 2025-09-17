@@ -53,10 +53,11 @@ const baseConfig = {
     'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip 的域
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 默认上游 DNS
     'default-nameserver': ['tls://223.5.5.5'], // 系统解析回落
+    'direct-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 直连用的 DoH
     'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 代理用的上游 DNS
-    'direct-nameserver': ['https://doh.pub/dns-query', 'https://223.5.5.5/dns-query'], // 直连用的 DoH
     'nameserver-policy': {
       'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
+      'geosite:cn,private': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 指定域名策略
     },
   },
 
