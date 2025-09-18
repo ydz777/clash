@@ -140,7 +140,7 @@ const mainProxyGroups = [
     type: 'smart',
     'include-all': true,
     ...smartTemplate,
-    filter: '(?i)(hysteria2|tuic)', // 只筛选新协议
+    // filter: '(?i)(hysteria2|tuic)', // 只筛选新协议
     icon: `${iconsBaseUrl}/Speedtest.png`,
   },
   {
