@@ -46,7 +46,7 @@ const baseConfig = {
     listen: '0.0.0.0:7874', // DNS 监听地址
     'use-hosts': false,
     'use-system-hosts': false,
-    'respect-rules': false,
+    'respect-rules': true,
     'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip', // 增强模式: fake-ip
     'fake-ip-range': '198.18.0.1/16', // fake-ip 网段
