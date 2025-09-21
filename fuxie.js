@@ -238,14 +238,32 @@ const ruleProviders = {
   },
 }
 
-// 规则
+// 规则（优化排序）
 const proxyRules = [
+  // 🛑 广告拦截
   // 'GEOSITE,category-ads-all,广告拦截', // 广告域名 → 拦截
+
+  // 🏠 私有网络直连
   'GEOSITE,private,本地直连', // 私有域 → 直连
+  'GEOIP,private,本地直连,no-resolve', // 私有网段 → 直连
+
+  // 🇨🇳 国内直连（按细分优先）
   'GEOSITE,category-games@cn,本地直连', // 国内游戏 → 直连
   'GEOSITE,microsoft@cn,本地直连', // 微软国内 → 直连
   'GEOSITE,apple-cn,本地直连', // 苹果中国 → 直连
   'GEOSITE,steam@cn,本地直连', // Steam 国内 → 直连
+
+  // 🀄️ 常规中国域名直连
+  'GEOSITE,geolocation-cn,本地直连', // 国内服务的中国域名 → 直连
+  'GEOSITE,tld-cn,本地直连', // 中国域名 → 直连
+  'GEOSITE,cn,本地直连', // 中国域名 → 直连
+  'GEOIP,CN,本地直连', // 中国 IP → 直连
+
+  // ⚠️ 特殊情况：国外服务的中国域名
+  'GEOSITE,geolocation-!cn@cn,本地直连', // 国外服务的中国域名 → 直连
+  'GEOSITE,geolocation-cn@!cn,节点选择', // 国内服务的域名（非CN） → 代理
+
+  // 🌏 特殊海外策略（单独分组）
   'GEOSITE,category-ai-!cn,AI', // 海外 AI → AI 组
   'GEOSITE,youtube,节点选择', // YouTube → 节点
   'GEOSITE,google,节点选择', // Google → 节点
@@ -254,10 +272,11 @@ const proxyRules = [
   'GEOSITE,spotify,节点选择', // Spotify → 节点
   'GEOSITE,onedrive,节点选择', // OneDrive → 节点
   'GEOSITE,category-scholar-!cn,节点选择', // 海外学术 → 节点
+
+  // 🌍 泛海外流量
   'GEOSITE,geolocation-!cn,节点选择', // 海外常用 → 节点
-  'GEOSITE,cn,本地直连', // 中国域名 → 直连
-  'GEOIP,private,本地直连,no-resolve', // 私有网段 → 直连
-  'GEOIP,CN,本地直连', // 中国 IP → 直连
+
+  // 🐟 兜底
   'MATCH,漏网之鱼', // 兜底规则
 ]
 
