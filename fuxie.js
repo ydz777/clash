@@ -255,7 +255,6 @@ const proxyRules = [
 
   // 🏠 私有网络直连
   'GEOSITE,private,本地直连', // 私有域 → 直连
-  'GEOIP,private,本地直连,no-resolve', // 私有网段 → 直连
 
   // 🇨🇳 国内直连（按细分优先）
   'GEOSITE,category-games@cn,本地直连', // 国内游戏 → 直连
@@ -267,7 +266,6 @@ const proxyRules = [
   'GEOSITE,geolocation-cn,本地直连', // 国内服务的中国域名 → 直连
   'GEOSITE,tld-cn,本地直连', // 中国域名 → 直连
   'GEOSITE,cn,本地直连', // 中国域名 → 直连
-  'GEOIP,CN,本地直连', // 中国 IP → 直连
 
   // ⚠️ 特殊情况：国外服务的中国域名
   'GEOSITE,geolocation-!cn@cn,本地直连', // 国外服务的中国域名 → 直连
@@ -285,6 +283,10 @@ const proxyRules = [
 
   // 🌍 泛海外流量
   'GEOSITE,geolocation-!cn,节点选择', // 海外常用 → 节点
+
+  // IP 规则
+  'GEOIP,private,本地直连,no-resolve', // 私有网段 → 直连
+  'GEOIP,CN,本地直连,no-resolve', // 中国 IP → 直连
 
   // 🐟 兜底
   'MATCH,漏网之鱼', // 兜底规则
