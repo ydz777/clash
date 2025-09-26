@@ -54,12 +54,12 @@ const baseConfig = {
     'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip
     'default-nameserver': ['tls://223.5.5.5:853', 'tls://1.12.12.12:853'], // 用于解析 nameserver，fallback 以及其他 DNS 服务器配置的，DNS 服务域名
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 默认上游 DNS
-    // 'direct-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 直连用的 DoH
+    'direct-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 直连用的 DoH
     'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 代理用的上游 DNS
-    // 'nameserver-policy': {
-    //   'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
-    //   'geosite:cn,private': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 指定域名策略
-    // },
+    'nameserver-policy': {
+      'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
+      'geosite:cn,private': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 指定域名策略
+    },
   },
 
   // Tun 内核
@@ -110,7 +110,7 @@ const smartTemplate = {
   strategy: 'sticky-sessions', // 会话粘性
   interval: 600, // 评估间隔(秒)
   uselightgbm: true, // 启用轻量 GBM 评估
-  collectdata: true, // 采集统计数据
+  collectdata: false, // 采集统计数据
 }
 
 const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点'] // 区域节点子组
@@ -123,7 +123,7 @@ const mainProxyGroups = [
     ...urlTestTemplate,
     name: '节点选择', // 主策略入口
     type: 'select', // 手动选择
-    proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'], // 候选策略
+    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '延迟选优', '手动选择', ...baseProxies, '本地直连'], // 候选策略
     icon: `${iconsBaseUrl}/Global.png`, // 面板图标
   },
   // 纯手动选择
@@ -131,13 +131,13 @@ const mainProxyGroups = [
     ...urlTestTemplate,
     name: '手动选择', // 仅手动切换
     type: 'select',
-    proxies: ['智能优选', '延迟选优', ...baseProxies, '本地直连'],
+    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '延迟选优', ...baseProxies, '本地直连'],
     'include-all': true,
     icon: `${iconsBaseUrl}/Static.png`,
   },
   {
     ...urlTestTemplate,
-    name: '智能优选', // 机器学习选优
+    name: '智能优选(tuic)', // 机器学习选优
     type: 'smart',
     'include-all': true,
     ...smartTemplate,
@@ -146,9 +146,18 @@ const mainProxyGroups = [
   },
   {
     ...urlTestTemplate,
+    name: '智能优选(hysteria)', // 机器学习选优
+    type: 'smart',
+    'include-all': true,
+    ...smartTemplate,
+    filter: '(?i)(hysteria)', // 只筛选新协议
+    icon: `${iconsBaseUrl}/Speedtest.png`,
+  },
+  {
+    ...urlTestTemplate,
     name: 'AI', // AI 相关流量专用
     type: 'select',
-    proxies: ['智能优选', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
+    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
     'include-all': true,
     icon: `${iconsBaseUrl}/ASN.png`,
   },
