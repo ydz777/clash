@@ -285,8 +285,8 @@ const proxyRules = [
   'GEOSITE,geolocation-!cn,节点选择', // 海外常用 → 节点
 
   // IP 规则
-  'GEOIP,private,本地直连,no-resolve', // 私有网段 → 直连
-  'GEOIP,CN,本地直连,no-resolve', // 中国 IP → 直连
+  'GEOIP,private,本地直连', // 私有网段 → 直连
+  'GEOIP,CN,本地直连', // 中国 IP → 直连
 
   // 🐟 兜底
   'MATCH,漏网之鱼', // 兜底规则
