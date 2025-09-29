@@ -54,12 +54,12 @@ const baseConfig = {
     'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'], // 不使用 fake-ip
     'default-nameserver': ['tls://223.5.5.5:853', 'tls://1.12.12.12:853'], // 用于解析 nameserver，fallback 以及其他 DNS 服务器配置的，DNS 服务域名
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 默认上游 DNS
-    // 'direct-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 直连用的 DoH
+    'direct-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 直连用的 DoH
     'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 代理用的上游 DNS
-    // 'nameserver-policy': {
-    //   'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
-    //   'geosite:cn,private': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 指定域名策略
-    // },
+    'nameserver-policy': {
+      'geosite:geolocation-!cn': ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query'], // 指定域名策略
+      'geosite:cn,private': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'], // 指定域名策略
+    },
   },
 
   // Tun 内核
