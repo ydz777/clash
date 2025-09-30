@@ -123,7 +123,7 @@ const mainProxyGroups = [
     ...urlTestTemplate,
     name: '节点选择', // 主策略入口
     type: 'select', // 手动选择
-    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '延迟选优', '手动选择', ...baseProxies, '本地直连'], // 候选策略
+    proxies: ['智能优选(anytls)', '智能优选(tuic)', '智能优选(hysteria)', '延迟选优', '手动选择', ...baseProxies, '本地直连'], // 候选策略
     icon: `${iconsBaseUrl}/Global.png`, // 面板图标
   },
   // 纯手动选择
@@ -131,7 +131,7 @@ const mainProxyGroups = [
     ...urlTestTemplate,
     name: '手动选择', // 仅手动切换
     type: 'select',
-    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '延迟选优', ...baseProxies, '本地直连'],
+    proxies: ['智能优选(anytls)', '智能优选(tuic)', '智能优选(hysteria)', '延迟选优', ...baseProxies, '本地直连'],
     'include-all': true,
     icon: `${iconsBaseUrl}/Static.png`,
   },
@@ -166,7 +166,7 @@ const mainProxyGroups = [
     ...urlTestTemplate,
     name: 'AI', // AI 相关流量专用
     type: 'select',
-    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
+    proxies: ['智能优选(anytls)', '智能优选(tuic)', '智能优选(hysteria)', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
     'include-all': true,
     icon: `${iconsBaseUrl}/ASN.png`,
   },
