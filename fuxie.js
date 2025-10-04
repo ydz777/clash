@@ -107,7 +107,7 @@ const urlTestTemplate = {
 const smartTemplate = {
   type: 'smart', // 智能分流组
   'include-all': true, // 包含全部节点
-  strategy: 'sticky-sessions', // 会话粘性
+  strategy: 'round-robin', // 会话粘性sticky-sessions round-robin
   interval: 600, // 评估间隔(秒)
   uselightgbm: true, // 启用轻量 GBM 评估
   collectdata: false, // 采集统计数据
