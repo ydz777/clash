@@ -315,8 +315,5 @@ function main(config) {
 
   console.log('✅ Clash 配置处理完成!')
 
-  console.log(config)
-  console.log($content, $files, $options)
-
   return finalConfig // 返回最终配置
 }
