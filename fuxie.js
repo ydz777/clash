@@ -155,6 +155,15 @@ const mainProxyGroups = [
   },
   {
     ...urlTestTemplate,
+    name: '智能优选(anytls)', // 机器学习选优
+    type: 'smart',
+    'include-all': true,
+    ...smartTemplate,
+    filter: '(?i)(anytls)', // 只筛选新协议
+    icon: `${iconsBaseUrl}/Speedtest.png`,
+  },
+  {
+    ...urlTestTemplate,
     name: 'AI', // AI 相关流量专用
     type: 'select',
     proxies: ['智能优选(tuic)', '智能优选(hysteria)', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
