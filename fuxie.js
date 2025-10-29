@@ -94,9 +94,15 @@ const baseConfig = {
   },
 }
 
+const urlTestUrl = 'http://www.gstatic.com/generate_204' // 测速 URL
+const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点'] // 区域节点子组
+const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color' // 图标基础地址
+const getIconPath = (iconName) => `${iconsBaseUrl}/${iconName}.png` // 图标拼接器
+const defaultStrategyProxies = ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '手动选择', ...baseProxies, '本地直连'] // 默认候选策略
+
 // 模板配置
 const urlTestTemplate = {
-  url: 'https://www.apple.com/library/test/success.html', // 测速 URL
+  url: urlTestUrl, // 测速 URL
   interval: 600, // 延迟测试间隔(秒)
   timeout: 3000, // 测速超时(ms)
   lazy: true, // 懒触发
@@ -111,138 +117,63 @@ const smartTemplate = {
   interval: 600, // 评估间隔(秒)
   uselightgbm: true, // 启用轻量 GBM 评估
   collectdata: false, // 采集统计数据
+  url: urlTestUrl, // 测速 URL
 }
 
-const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点'] // 区域节点子组
-const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color' // 图标基础地址
+// 构建智能协议组配置
+const smartProtocolConfigs = [
+  { name: '智能优选(tuic)', filter: '(?i)(tuic)', icon: 'Speedtest' },
+  { name: '智能优选(hysteria)', filter: '(?i)(hysteria)', icon: 'Speedtest' },
+  { name: '智能优选(anytls)', filter: '(?i)(anytls)', icon: 'Speedtest' },
+]
+
+// 构建区域智能组配置
+const regionSmartConfigs = [
+  { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
+  { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
+  { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
+  { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
+  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
+]
+
+// 构建智能组
+const createSmartGroup = ({ name, filter, icon, ...rest }) => ({
+  ...urlTestTemplate,
+  ...smartTemplate,
+  name,
+  filter,
+  icon: getIconPath(icon),
+  ...rest,
+})
+
+// 构建选择组
+const createSelectGroup = ({ name, proxies = defaultStrategyProxies, icon, includeAll = true }) => {
+  const selectGroup = {
+    ...urlTestTemplate,
+    type: 'select',
+    name,
+    proxies,
+    icon: getIconPath(icon),
+  }
+  if (typeof includeAll === 'boolean') selectGroup['include-all'] = includeAll
+  return selectGroup
+}
+
+const smartProtocolGroups = smartProtocolConfigs.map(createSmartGroup) // 智能协议组
+const regionSmartGroups = regionSmartConfigs.map(createSmartGroup) // 区域智能组
 
 // 代理组
 const mainProxyGroups = [
   // 总入口: 统一选择策略
-  {
-    ...urlTestTemplate,
-    name: '节点选择', // 主策略入口
-    type: 'select', // 手动选择
-    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '延迟选优', '手动选择', ...baseProxies, '本地直连'], // 候选策略
-    icon: `${iconsBaseUrl}/Global.png`, // 面板图标
-  },
+  createSelectGroup({ name: '节点选择', icon: 'Global', includeAll: false }),
   // 纯手动选择
-  {
-    ...urlTestTemplate,
-    name: '手动选择', // 仅手动切换
-    type: 'select',
-    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '延迟选优', ...baseProxies, '本地直连'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/Static.png`,
-  },
-  {
-    ...urlTestTemplate,
-    name: '智能优选(tuic)', // 机器学习选优
-    type: 'smart',
-    'include-all': true,
-    ...smartTemplate,
-    filter: '(?i)(tuic)', // 只筛选新协议
-    icon: `${iconsBaseUrl}/Speedtest.png`,
-  },
-  {
-    ...urlTestTemplate,
-    name: '智能优选(hysteria)', // 机器学习选优
-    type: 'smart',
-    'include-all': true,
-    ...smartTemplate,
-    filter: '(?i)(hysteria)', // 只筛选新协议
-    icon: `${iconsBaseUrl}/Speedtest.png`,
-  },
-  {
-    ...urlTestTemplate,
-    name: '智能优选(anytls)', // 机器学习选优
-    type: 'smart',
-    'include-all': true,
-    ...smartTemplate,
-    filter: '(?i)(anytls)', // 只筛选新协议
-    icon: `${iconsBaseUrl}/Speedtest.png`,
-  },
-  {
-    ...urlTestTemplate,
-    name: 'AI', // AI 相关流量专用
-    type: 'select',
-    proxies: ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '延迟选优', '手动选择', ...baseProxies, '本地直连'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/ASN.png`,
-  },
-  {
-    ...urlTestTemplate,
-    name: '延迟选优', // 延迟自动测速
-    type: 'url-test',
-    tolerance: 100,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/Urltest.png`,
-  },
-  {
-    ...urlTestTemplate,
-    name: '本地直连', // 直连通道
-    type: 'select',
-    proxies: ['DIRECT'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/China.png`,
-  },
-  // {
-  //   ...urlTestTemplate,
-  //   name: '广告拦截', // 广告处理
-  //   type: 'select',
-  //   proxies: ['REJECT', 'DIRECT'],
-  //   'include-all': true,
-  //   icon: `${iconsBaseUrl}/China.png`,
-  // },
-  {
-    ...urlTestTemplate,
-    name: '漏网之鱼', // 兜底策略
-    type: 'select',
-    proxies: ['节点选择', '本地直连'],
-    'include-all': true,
-    icon: `${iconsBaseUrl}/Final.png`,
-  },
-
-  {
-    ...smartTemplate,
-    name: '香港节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/HK.png`,
-    filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)',
-  },
-  {
-    ...smartTemplate,
-    name: '台湾节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/TW.png`,
-    filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)',
-  },
-  {
-    ...smartTemplate,
-    name: '日本节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/JP.png`,
-    filter: '(?i)(🇯🇵|日|jp|japan)',
-  },
-  {
-    ...smartTemplate,
-    name: '新加坡节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/SG.png`,
-    filter: '(?i)(🇸🇬|新|sg|singapore)',
-  },
-  {
-    ...smartTemplate,
-    name: '美国节点',
-    tolerance: 50,
-    'include-all': true,
-    icon: `${iconsBaseUrl}/US.png`,
-    filter: '(?i)(🇺🇸|美|us|unitedstates|united states)',
-  },
+  createSelectGroup({ name: '手动选择', icon: 'Static', proxies: defaultStrategyProxies.filter((i) => i !== '手动选择') }),
+  ...smartProtocolGroups,
+  createSelectGroup({ name: 'AI', icon: 'ASN' }),
+  createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
+  // createSelectGroup({ name: '广告拦截', icon: 'China', proxies: ['REJECT', 'DIRECT'] }),
+  ...regionSmartGroups,
+  createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'] }),
 ]
 
 // 规则提供者
@@ -304,8 +235,11 @@ const proxyRules = [
 // 主入口: 合并外部配置与内置模板并校验
 function main(config) {
   console.log('🎯 开始处理 Clash 配置...')
-  const proxyCount = config?.proxies?.length ?? 0 // 节点数量
-  const proxyProviderCount = typeof config?.['proxy-providers'] === 'object' ? Object.keys(config['proxy-providers']).length : 0 // 提供者数量
+  // 统计基础信息
+  const proxies = Array.isArray(config?.proxies) ? config.proxies : []
+  const proxyProviders = config?.['proxy-providers']
+  const proxyCount = proxies.length // 节点数量
+  const proxyProviderCount = proxyProviders && typeof proxyProviders === 'object' ? Object.keys(proxyProviders).length : 0 // 提供者数量
   console.log(`📊 检测到 ${proxyCount} 个代理节点, ${proxyProviderCount} 个代理提供者`)
 
   if (proxyCount === 0 && proxyProviderCount === 0) {
@@ -313,10 +247,12 @@ function main(config) {
     throw new Error('配置文件中未找到任何代理')
   }
 
+  console.log('🔧 使用预设模板合并配置...')
+  // 组装最终配置
   const finalConfig = {
     ...baseConfig,
     ...config,
-    proxies: config?.proxies || [],
+    proxies,
     'proxy-groups': mainProxyGroups,
     'rule-providers': ruleProviders,
     rules: proxyRules, // 规则列表(顺序匹配)
