@@ -94,7 +94,7 @@ const baseConfig = {
   },
 }
 
-const urlTestUrl = 'http://www.gstatic.com/generate_204' // 测速 URL
+const urlTestUrl = 'https://www.gstatic.com/generate_204' // 测速 URL
 const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点'] // 区域节点子组
 const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color' // 图标基础地址
 const getIconPath = (iconName) => `${iconsBaseUrl}/${iconName}.png` // 图标拼接器
