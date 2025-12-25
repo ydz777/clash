@@ -125,6 +125,7 @@ const smartProtocolConfigs = [
   { name: '智能优选(tuic)', filter: '(?i)(tuic)', icon: 'Speedtest' },
   { name: '智能优选(hysteria)', filter: '(?i)(hysteria)', icon: 'Speedtest' },
   { name: '智能优选(anytls)', filter: '(?i)(anytls)', icon: 'Speedtest' },
+  { name: '智能优选(vless)', filter: '(?i)(vless)', icon: 'Speedtest' },
 ]
 
 // 构建区域智能组配置
@@ -170,6 +171,7 @@ const mainProxyGroups = [
   createSelectGroup({ name: '手动选择', icon: 'Static', proxies: defaultStrategyProxies.filter((i) => i !== '手动选择') }),
   ...smartProtocolGroups,
   createSelectGroup({ name: 'AI', icon: 'ASN' }),
+  createSelectGroup({ name: 'google', icon: 'Google' }),
   createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
   // createSelectGroup({ name: '广告拦截', icon: 'China', proxies: ['REJECT', 'DIRECT'] }),
   ...regionSmartGroups,
@@ -214,7 +216,7 @@ const proxyRules = [
   // 🌏 特殊海外策略（单独分组）
   'GEOSITE,category-ai-!cn,AI', // 海外 AI → AI 组
   'GEOSITE,youtube,节点选择', // YouTube → 节点
-  'GEOSITE,google,节点选择', // Google → 节点
+  'GEOSITE,google,google', // Google → google 组
   'GEOSITE,twitter,节点选择', // X/Twitter → 节点
   'GEOSITE,github,节点选择', // GitHub → 节点
   'GEOSITE,spotify,节点选择', // Spotify → 节点
