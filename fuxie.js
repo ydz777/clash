@@ -185,7 +185,7 @@ const ruleProviders = {
     type: 'http',
     behavior: 'domain',
     format: 'text',
-    url: 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.yaml',
+    url: 'https://gh-proxy.com/raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.yaml',
     interval: 86400,
   },
 }
@@ -256,7 +256,7 @@ function main(config) {
     ...config,
     proxies,
     'proxy-groups': mainProxyGroups,
-    'rule-providers': ruleProviders,
+    // 'rule-providers': ruleProviders,
     rules: proxyRules, // 规则列表(顺序匹配)
   }
 
