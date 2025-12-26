@@ -33,10 +33,10 @@ const baseConfig = {
   'geo-auto-update': true, // 自动更新 Geo 数据
   'geo-update-interval': 24, // 更新间隔(小时)
   'geox-url': {
-    geosite: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat', // 域名库
-    geoip: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat', // IP 数据库
-    mmdb: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb', // 国家库
-    asn: 'https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb', // ASN 库
+    geosite: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat', // 域名库
+    geoip: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat', // IP 数据库
+    mmdb: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb', // 国家库
+    asn: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb', // ASN 库
   },
 
   // DNS 配置
