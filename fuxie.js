@@ -98,7 +98,7 @@ const urlTestUrl = 'https://www.gstatic.com/generate_204' // 测速 URL
 const baseProxies = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点'] // 区域节点子组
 const iconsBaseUrl = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color' // 图标基础地址
 const getIconPath = (iconName) => `${iconsBaseUrl}/${iconName}.png` // 图标拼接器
-const defaultStrategyProxies = ['智能优选(tuic)', '智能优选(hysteria)', '智能优选(anytls)', '手动选择', ...baseProxies, '本地直连'] // 默认候选策略
+const defaultStrategyProxies = ['智能优选(vless)', '智能优选(anytls)', '智能优选(tuic)', '智能优选(hysteria)', '手动选择', ...baseProxies, '本地直连'] // 默认候选策略
 
 // 模板配置
 const urlTestTemplate = {
@@ -122,19 +122,19 @@ const smartTemplate = {
 
 // 构建智能协议组配置
 const smartProtocolConfigs = [
+  { name: '智能优选(vless)', filter: '(?i)(vless)', icon: 'Speedtest' },
+  { name: '智能优选(anytls)', filter: '(?i)(anytls)', icon: 'Speedtest' },
   { name: '智能优选(tuic)', filter: '(?i)(tuic)', icon: 'Speedtest' },
   { name: '智能优选(hysteria)', filter: '(?i)(hysteria)', icon: 'Speedtest' },
-  { name: '智能优选(anytls)', filter: '(?i)(anytls)', icon: 'Speedtest' },
-  { name: '智能优选(vless)', filter: '(?i)(vless)', icon: 'Speedtest' },
 ]
 
 // 构建区域智能组配置
 const regionSmartConfigs = [
   { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
+  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
   { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
   { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
   { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
-  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
 ]
 
 // 构建智能组
