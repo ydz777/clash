@@ -47,7 +47,7 @@ const baseConfig = {
     'use-hosts': false,
     'use-system-hosts': false,
     'prefer-h3': false,
-    'respect-rules': true,
+    'respect-rules': false,
     'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip', // 增强模式: fake-ip
     'fake-ip-range': '198.18.0.1/16', // fake-ip 网段
