@@ -33,9 +33,9 @@ const baseConfig = {
   'geo-auto-update': true, // 自动更新 Geo 数据
   'geo-update-interval': 24, // 更新间隔(小时)
   'geox-url': {
+    geoip: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat', // IP 数据库
     geosite: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat', // 域名库
-    geoip: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat', // IP 数据库(完整版，含 telegram 等分类)
-    mmdb: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb', // 国家库(完整版)
+    mmdb: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb', // 国家库
     asn: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb', // ASN 库
   },
 
@@ -217,7 +217,6 @@ const proxyRules = [
   // 🌏 特殊海外策略（单独分组）
   'GEOSITE,category-ai-!cn,AI', // 海外 AI → AI 组
   'GEOSITE,telegram,Telegram', // Telegram 域名 → TG 组
-  'GEOIP,telegram,Telegram', // Telegram IP 段 → TG 组
   'GEOSITE,youtube,节点选择', // YouTube → 节点
   'GEOSITE,google,google', // Google → google 组
   'GEOSITE,twitter,节点选择', // X/Twitter → 节点
@@ -230,6 +229,7 @@ const proxyRules = [
   'GEOSITE,geolocation-!cn,节点选择', // 海外常用 → 节点
 
   // IP 规则
+  'GEOIP,telegram,Telegram', // Telegram IP 段 → TG 组
   'GEOIP,private,本地直连', // 私有网段 → 直连
   'GEOIP,CN,本地直连', // 中国 IP → 直连
 
