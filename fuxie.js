@@ -216,7 +216,8 @@ const proxyRules = [
 
   // 🌏 特殊海外策略（单独分组）
   'GEOSITE,category-ai-!cn,AI', // 海外 AI → AI 组
-  'GEOSITE,telegram,Telegram', // Telegram → TG 组
+  'GEOSITE,telegram,Telegram', // Telegram 域名 → TG 组
+  'GEOIP,telegram,Telegram', // Telegram IP 段 → TG 组
   'GEOSITE,youtube,节点选择', // YouTube → 节点
   'GEOSITE,google,google', // Google → google 组
   'GEOSITE,twitter,节点选择', // X/Twitter → 节点
