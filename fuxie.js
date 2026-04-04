@@ -171,6 +171,7 @@ const mainProxyGroups = [
   createSelectGroup({ name: '手动选择', icon: 'Static', proxies: defaultStrategyProxies.filter((i) => i !== '手动选择') }),
   ...smartProtocolGroups,
   createSelectGroup({ name: 'AI', icon: 'ASN' }),
+  createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
   createSelectGroup({ name: 'google', icon: 'Google' }),
   createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
   // createSelectGroup({ name: '广告拦截', icon: 'China', proxies: ['REJECT', 'DIRECT'] }),
@@ -215,6 +216,7 @@ const proxyRules = [
 
   // 🌏 特殊海外策略（单独分组）
   'GEOSITE,category-ai-!cn,AI', // 海外 AI → AI 组
+  'GEOSITE,telegram,Telegram', // Telegram → TG 组
   'GEOSITE,youtube,节点选择', // YouTube → 节点
   'GEOSITE,google,google', // Google → google 组
   'GEOSITE,twitter,节点选择', // X/Twitter → 节点
