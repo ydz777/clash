@@ -34,8 +34,8 @@ const baseConfig = {
   'geo-update-interval': 24, // 更新间隔(小时)
   'geox-url': {
     geosite: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat', // 域名库
-    geoip: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat', // IP 数据库
-    mmdb: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb', // 国家库
+    geoip: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat', // IP 数据库(完整版，含 telegram 等分类)
+    mmdb: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb', // 国家库(完整版)
     asn: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb', // ASN 库
   },
 
