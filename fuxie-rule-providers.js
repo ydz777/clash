@@ -35,18 +35,13 @@ const RULE_PROVIDER_OPTIONS = {
   proxy: '节点选择',
 }
 
-// 这里按 README 分类挑常用规则：国内直连、AI/通讯/开发服务代理，泛代理用轻量版兜底。
+// 规则集顺序和最终 rules 命中顺序保持一致，方便排查命中关系。
 const RULE_PROVIDER_SOURCES = [
   { name: 'lan', source: 'Lan' },
-  { name: 'apple', source: 'Apple' },
-  { name: 'steamCN', source: 'SteamCN' },
-  { name: 'microsoft', source: 'Microsoft' },
-  { name: 'chinaMax', source: 'ChinaMax' },
 
   { name: 'openAI', source: 'OpenAI' },
   { name: 'claude', source: 'Claude' },
   { name: 'gemini', source: 'Gemini' },
-  { name: 'anthropic', source: 'Anthropic' },
   { name: 'copilot', source: 'Copilot' },
 
   { name: 'telegram', source: 'Telegram' },
@@ -57,22 +52,39 @@ const RULE_PROVIDER_SOURCES = [
   { name: 'spotify', source: 'Spotify' },
   { name: 'oneDrive', source: 'OneDrive' },
   { name: 'globalScholar', source: 'GlobalScholar' },
+
+  { name: 'apple', source: 'Apple' },
+  { name: 'steamCN', source: 'SteamCN' },
+  { name: 'microsoft', source: 'Microsoft' },
+  { name: 'china', source: 'China' },
+
   { name: 'proxyLite', source: 'ProxyLite' },
 ]
 
-const AI_RULE_SETS = ['openAI', 'claude', 'gemini', 'anthropic', 'copilot']
-const DIRECT_RULE_SETS = ['lan', 'apple', 'steamCN', 'microsoft', 'chinaMax']
 const SERVICE_RULE_SETS = [
+  { name: 'lan', target: '本地直连' },
+
+  { name: 'openAI', target: 'AI' },
+  { name: 'claude', target: 'AI' },
+  { name: 'gemini', target: 'AI' },
+  { name: 'copilot', target: 'AI' },
+
   { name: 'telegram', target: 'Telegram' },
   { name: 'youTube', target: '节点选择' },
-  { name: 'google', target: 'google' },
+  { name: 'google', target: 'Google' },
   { name: 'twitter', target: '节点选择' },
   { name: 'gitHub', target: '节点选择' },
   { name: 'spotify', target: '节点选择' },
   { name: 'oneDrive', target: '节点选择' },
   { name: 'globalScholar', target: '节点选择' },
+
+  { name: 'apple', target: '本地直连' },
+  { name: 'steamCN', target: '本地直连' },
+  { name: 'microsoft', target: '本地直连' },
+  { name: 'china', target: '本地直连' },
+
+  { name: 'proxyLite', target: '节点选择' },
 ]
-const PROXY_FALLBACK_RULE_SETS = [{ name: 'proxyLite', target: '节点选择' }]
 
 // Orz-3/mini 的 Color 图标文件名和策略组 icon 字段保持一致。
 const getIcon = (name) => `${ICON_BASE_URL}/${name}.png`
@@ -83,7 +95,7 @@ const createRuleProvider = ({ name, source }) => ({
   path: `./ruleset/ios_rule_script/${name}.list`,
 })
 
-const createRuleSetRules = (names, target) => names.map((name) => `RULE-SET,${name},${target}`)
+const createRuleSetRule = ({ name, target, noResolve }) => `RULE-SET,${name},${target}${noResolve ? ',no-resolve' : ''}`
 
 const ruleProviders = Object.fromEntries(RULE_PROVIDER_SOURCES.map((source) => [source.name, createRuleProvider(source)]))
 
@@ -139,7 +151,7 @@ const baseConfig = {
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
     // 这些域名不适合 fake-ip，保持真实解析能减少局域网和连通性检测异常。
-    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', '+.msftconnecttest.com', '+.msftncsi.com', 'connectivitycheck.gstatic.com', 'captive.apple.com', 'detectportal.firefox.com'],
+    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'],
     'default-nameserver': ['223.5.5.5', '119.29.29.29'],
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
     'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
@@ -232,7 +244,7 @@ const proxyGroups = [
 
   createSelectGroup({ name: 'AI', icon: 'ASN' }),
   createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
-  createSelectGroup({ name: 'google', icon: 'Google' }),
+  createSelectGroup({ name: 'Google', icon: 'Google' }),
   createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
 
   ...REGION_GROUPS.map(createSmartGroup),
@@ -241,24 +253,7 @@ const proxyGroups = [
 ]
 
 // 规则按顺序命中：先处理局域网和明确业务，再处理国内直连和兜底。
-const proxyRules = [
-  ...createRuleSetRules(['lan'], '本地直连'),
-  'GEOSITE,private,本地直连',
-  'GEOIP,private,本地直连,no-resolve',
-
-  ...createRuleSetRules(AI_RULE_SETS, 'AI'),
-  ...SERVICE_RULE_SETS.map(({ name, target }) => `RULE-SET,${name},${target}`),
-
-  // 这些服务在国内大多能直连，放在 ProxyLite 兜底前避免被泛规则带走。
-  ...createRuleSetRules(
-    DIRECT_RULE_SETS.filter((name) => name !== 'lan'),
-    '本地直连'
-  ),
-  ...PROXY_FALLBACK_RULE_SETS.map(({ name, target }) => `RULE-SET,${name},${target}`),
-
-  'GEOIP,CN,本地直连,no-resolve',
-  'MATCH,漏网之鱼',
-]
+const proxyRules = [...SERVICE_RULE_SETS.map(createRuleSetRule), 'GEOIP,CN,本地直连,no-resolve', 'MATCH,漏网之鱼']
 
 // proxy-providers 可能不存在，统一在这里做兼容。
 const getProxyProviderCount = (proxyProviders) => {
@@ -296,18 +291,5 @@ function main(config) {
   }
 
   console.log(`✅ 配置生成完成: ${proxyGroups.length} 个代理组 / ${Object.keys(mergedRuleProviders).length} 个规则集 / ${proxyRules.length} 条规则`)
-  console.log(finalConfig)
   return finalConfig
 }
-main({
-  proxies: [
-    {
-      name: '测试节点',
-      type: 'ss',
-      server: '127.0.0.1',
-      port: 8388,
-      cipher: 'aes-128-gcm',
-      password: 'test',
-    },
-  ],
-})
