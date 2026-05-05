@@ -56,7 +56,7 @@ const RULE_PROVIDER_SOURCES = [
   { name: 'apple', source: 'Apple' },
   { name: 'steamCN', source: 'SteamCN' },
   { name: 'microsoft', source: 'Microsoft' },
-  { name: 'china', source: 'China' },
+  { name: 'chinaMax', source: 'ChinaMax', file: 'ChinaMax_Classical.yaml', format: 'yaml' },
 
   { name: 'proxyLite', source: 'ProxyLite' },
 ]
@@ -81,7 +81,7 @@ const SERVICE_RULE_SETS = [
   { name: 'apple', target: '本地直连' },
   { name: 'steamCN', target: '本地直连' },
   { name: 'microsoft', target: '本地直连' },
-  { name: 'china', target: '本地直连' },
+  { name: 'chinaMax', target: '本地直连' },
 
   { name: 'proxyLite', target: '节点选择' },
 ]
@@ -89,10 +89,11 @@ const SERVICE_RULE_SETS = [
 // Orz-3/mini 的 Color 图标文件名和策略组 icon 字段保持一致。
 const getIcon = (name) => `${ICON_BASE_URL}/${name}.png`
 
-const createRuleProvider = ({ name, source }) => ({
+const createRuleProvider = ({ name, source, file = `${source}.list`, format = RULE_PROVIDER_OPTIONS.format }) => ({
   ...RULE_PROVIDER_OPTIONS,
-  url: `${IOS_RULE_SCRIPT_BASE_URL}/${source}/${source}.list`,
-  path: `./ruleset/ios_rule_script/${name}.list`,
+  format,
+  url: `${IOS_RULE_SCRIPT_BASE_URL}/${source}/${file}`,
+  path: `./ruleset/ios_rule_script/${name}.${file.split('.').pop()}`,
 })
 
 const createRuleSetRule = ({ name, target, noResolve }) => `RULE-SET,${name},${target}${noResolve ? ',no-resolve' : ''}`
@@ -252,8 +253,16 @@ const proxyGroups = [
   createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'] }),
 ]
 
-// 规则按顺序命中：先处理局域网和明确业务，再处理国内直连和兜底。
-const proxyRules = [...SERVICE_RULE_SETS.map(createRuleSetRule), 'GEOIP,CN,本地直连,no-resolve', 'MATCH,漏网之鱼']
+// 域名优先交给 ChinaMax 规则集，这里只兜底纯 IP 流量。
+const IP_FALLBACK_RULES = []
+
+// 规则按顺序命中：先处理局域网和明确业务，再用 ChinaMax 兜住国内域名，最后才处理国内 IP 和兜底。
+const proxyRules = [
+  ...SERVICE_RULE_SETS.map(createRuleSetRule),
+  ...IP_FALLBACK_RULES,
+  'GEOIP,CN,本地直连,no-resolve',
+  'MATCH,漏网之鱼',
+]
 
 // proxy-providers 可能不存在，统一在这里做兼容。
 const getProxyProviderCount = (proxyProviders) => {
@@ -290,6 +299,19 @@ function main(config) {
     rules: proxyRules,
   }
 
+  console.log(finalConfig)
+
   console.log(`✅ 配置生成完成: ${proxyGroups.length} 个代理组 / ${Object.keys(mergedRuleProviders).length} 个规则集 / ${proxyRules.length} 条规则`)
   return finalConfig
 }
+
+
+main({
+  proxies: [
+    {
+      name: '节点选择',
+      type: 'select',
+      proxies: ['DIRECT'],
+    },
+  ],
+})
