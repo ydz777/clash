@@ -246,10 +246,10 @@ const proxyGroups = [
   createSelectGroup({ name: 'AI', icon: 'ASN' }),
   createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
   createSelectGroup({ name: 'Google', icon: 'Google' }),
-  createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
 
   ...REGION_GROUPS.map(createSmartGroup),
 
+  createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
   createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'] }),
 ]
 
