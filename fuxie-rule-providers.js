@@ -58,7 +58,7 @@ const RULE_PROVIDER_SOURCES = [
   { name: 'microsoft', source: 'Microsoft' },
   { name: 'chinaMax', source: 'ChinaMax', file: 'ChinaMax_Classical.yaml', format: 'yaml' },
 
-  { name: 'proxyLite', source: 'ProxyLite' },
+  { name: 'global', source: 'Global', file: 'Global_Classical.yaml', format: 'yaml' },
 ]
 
 const SERVICE_RULE_SETS = [
@@ -83,7 +83,7 @@ const SERVICE_RULE_SETS = [
   { name: 'microsoft', target: '本地直连' },
   { name: 'chinaMax', target: '本地直连' },
 
-  { name: 'proxyLite', target: '节点选择' },
+  { name: 'global', target: '节点选择' },
 ]
 
 // Orz-3/mini 的 Color 图标文件名和策略组 icon 字段保持一致。
@@ -254,13 +254,12 @@ const proxyGroups = [
 ]
 
 // 域名优先交给 ChinaMax 规则集，这里只兜底纯 IP 流量。
-const IP_FALLBACK_RULES = []
+const IP_FALLBACK_RULES = ['GEOIP,CN,本地直连,no-resolve']
 
 // 规则按顺序命中：先处理局域网和明确业务，再用 ChinaMax 兜住国内域名，最后才处理国内 IP 和兜底。
 const proxyRules = [
   ...SERVICE_RULE_SETS.map(createRuleSetRule),
   ...IP_FALLBACK_RULES,
-  'GEOIP,CN,本地直连,no-resolve',
   'MATCH,漏网之鱼',
 ]
 
@@ -305,13 +304,3 @@ function main(config) {
   return finalConfig
 }
 
-
-main({
-  proxies: [
-    {
-      name: '节点选择',
-      type: 'select',
-      proxies: ['DIRECT'],
-    },
-  ],
-})
