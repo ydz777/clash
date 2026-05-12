@@ -183,6 +183,9 @@ const proxyGroups = [
 
 // 规则按顺序命中，越具体的规则越靠前。
 const proxyRules = [
+  // 禁用 QUIC / HTTP3，避免浏览器先走 UDP 443 超时再回退 TCP
+  'AND,((NETWORK,UDP),(DST-PORT,443)),REJECT',
+
   // 局域网和国内流量优先直连，减少不必要的代理绕路。
   'GEOSITE,private,本地直连',
   'GEOSITE,category-games@cn,本地直连',
