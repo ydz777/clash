@@ -197,8 +197,6 @@ const proxyRules = [
   'GEOSITE,cn,本地直连',
 
   // 特殊域名按业务分组，避免全部挤到默认节点选择。
-  'GEOSITE,geolocation-!cn@cn,本地直连',
-  'GEOSITE,geolocation-cn@!cn,节点选择',
   'GEOSITE,category-ai-!cn,AI',
   'GEOSITE,telegram,Telegram',
   'GEOSITE,youtube,节点选择',
