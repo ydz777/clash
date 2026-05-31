@@ -173,6 +173,7 @@ const proxyGroups = [
 
   createSelectGroup({ name: 'AI', icon: 'ASN' }),
   createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
+  createSelectGroup({ name: 'youtube', icon: 'YouTube' }),
   createSelectGroup({ name: 'google', icon: 'Google' }),
   createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
 
@@ -192,7 +193,7 @@ const proxyRules = [
   // 特殊域名按业务分组，避免全部挤到默认节点选择。
   'GEOSITE,category-ai-!cn,AI',
   'GEOSITE,telegram,Telegram',
-  'GEOSITE,youtube,节点选择',
+  'GEOSITE,youtube,youtube',
   'GEOSITE,google,google',
   'GEOSITE,twitter,节点选择',
   'GEOSITE,github,节点选择',
