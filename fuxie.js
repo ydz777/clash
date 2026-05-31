@@ -188,13 +188,6 @@ const proxyRules = [
 
   // 局域网和国内流量优先直连，减少不必要的代理绕路。
   'GEOSITE,private,本地直连',
-  'GEOSITE,category-games@cn,本地直连',
-  'GEOSITE,microsoft@cn,本地直连',
-  'GEOSITE,apple-cn,本地直连',
-  'GEOSITE,steam@cn,本地直连',
-  'GEOSITE,geolocation-cn,本地直连',
-  'GEOSITE,tld-cn,本地直连',
-  'GEOSITE,cn,本地直连',
 
   // 特殊域名按业务分组，避免全部挤到默认节点选择。
   'GEOSITE,category-ai-!cn,AI',
@@ -207,6 +200,15 @@ const proxyRules = [
   'GEOSITE,onedrive,节点选择',
   'GEOSITE,category-scholar-!cn,节点选择',
   'GEOSITE,geolocation-!cn,节点选择',
+
+  'GEOSITE,category-games@cn,本地直连',
+  'GEOSITE,microsoft@cn,本地直连',
+  'GEOSITE,apple-cn,本地直连',
+  'GEOSITE,steam@cn,本地直连',
+
+  'GEOSITE,geolocation-cn,本地直连',
+  'GEOSITE,tld-cn,本地直连',
+  'GEOSITE,cn,本地直连',
 
   'GEOIP,telegram,Telegram',
   'GEOIP,private,本地直连',
