@@ -175,6 +175,7 @@ const proxyGroups = [
   createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
   createSelectGroup({ name: 'youtube', icon: 'YouTube' }),
   createSelectGroup({ name: 'google', icon: 'Google' }),
+  createSelectGroup({ name: 'Apple', icon: 'Apple' }),
   createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
 
   ...REGION_GROUPS.map(createSmartGroup),
@@ -195,6 +196,7 @@ const proxyRules = [
   'GEOSITE,telegram,Telegram',
   'GEOSITE,youtube,youtube',
   'GEOSITE,google,google',
+  'GEOSITE,apple,Apple',
   'GEOSITE,twitter,节点选择',
   'GEOSITE,github,节点选择',
   'GEOSITE,spotify,节点选择',
