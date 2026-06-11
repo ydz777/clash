@@ -210,7 +210,6 @@ const proxyRules = [
 
   'GEOSITE,category-games@cn,本地直连',
   'GEOSITE,microsoft@cn,本地直连',
-  'GEOSITE,apple-cn,本地直连',
   'GEOSITE,steam@cn,本地直连',
 
   'GEOSITE,geolocation-cn,本地直连',
