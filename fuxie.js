@@ -4,7 +4,7 @@ const ICON_BASE_URL = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color
 // 默认候选里的地区顺序，和面板展示顺序可以不同。
 const REGION_PROXY_ORDER = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点']
 
-// 地区智能组的展示顺序和筛选规则。
+// 地区自动选择组的展示顺序和筛选规则。
 const REGION_GROUPS = [
   { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
   { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
@@ -13,17 +13,17 @@ const REGION_GROUPS = [
   { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
 ]
 
-// 按协议拆智能优选，方便排查某类协议的节点质量。
-const SMART_PROTOCOL_GROUPS = [
-  { name: '智能优选(vless)', filter: '(?i)(vless)', icon: 'Auto' },
-  { name: '智能优选(anytls)', filter: '(?i)(anytls)', icon: 'Auto' },
-  { name: '智能优选(tuic)', filter: '(?i)(tuic)', icon: 'Auto' },
-  { name: '智能优选(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
+// 按协议拆自动选择组，方便排查某类协议的节点质量。
+const AUTO_PROTOCOL_GROUPS = [
+  { name: '自动选择(vless)', filter: '(?i)(vless)', icon: 'Auto' },
+  { name: '自动选择(anytls)', filter: '(?i)(anytls)', icon: 'Auto' },
+  { name: '自动选择(tuic)', filter: '(?i)(tuic)', icon: 'Auto' },
+  { name: '自动选择(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
 ]
 
-// 默认策略先走智能协议组，再给手动和地区组兜底。
-const SMART_GROUP_NAMES = SMART_PROTOCOL_GROUPS.map(({ name }) => name)
-const DEFAULT_STRATEGY_PROXIES = [...SMART_GROUP_NAMES, '手动选择', ...REGION_PROXY_ORDER, '本地直连']
+// 默认策略先走协议自动选择组，再给手动和地区组兜底。
+const AUTO_GROUP_NAMES = AUTO_PROTOCOL_GROUPS.map(({ name }) => name)
+const DEFAULT_STRATEGY_PROXIES = [...AUTO_GROUP_NAMES, '手动选择', ...REGION_PROXY_ORDER, '本地直连']
 
 // Orz-3/mini 的 Color 图标文件名和策略组 icon 字段保持一致。
 const getIcon = (name) => `${ICON_BASE_URL}/${name}.png`
@@ -129,21 +129,16 @@ const urlTestOptions = {
   hidden: false,
 }
 
-// smart 组按协议或地区自动筛选节点，strategy 控制会话粘性。
-const smartOptions = {
-  type: 'smart',
+// url-test 组按协议或地区筛选节点，并自动选择延迟较低的节点。
+const autoTestOptions = {
+  type: 'url-test',
   'include-all': true,
-  strategy: 'sticky-sessions',
-  interval: 600,
-  uselightgbm: true,
-  collectdata: false,
-  url: URL_TEST,
 }
 
-// 构建智能组：协议组和地区组都走同一套模板。
-const createSmartGroup = ({ name, filter, icon, ...options }) => ({
+// 构建自动选择组：协议组和地区组都走同一套模板。
+const createAutoTestGroup = ({ name, filter, icon, ...options }) => ({
   ...urlTestOptions,
-  ...smartOptions,
+  ...autoTestOptions,
   name,
   filter,
   icon: getIcon(icon),
@@ -169,7 +164,7 @@ const proxyGroups = [
     proxies: DEFAULT_STRATEGY_PROXIES.filter((name) => name !== '手动选择'),
   }),
 
-  ...SMART_PROTOCOL_GROUPS.map(createSmartGroup),
+  ...AUTO_PROTOCOL_GROUPS.map(createAutoTestGroup),
 
   createSelectGroup({ name: 'AI', icon: 'ASN' }),
   createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
@@ -182,7 +177,7 @@ const proxyGroups = [
   }),
   createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
 
-  ...REGION_GROUPS.map(createSmartGroup),
+  ...REGION_GROUPS.map(createAutoTestGroup),
 
   createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'] }),
 ]
