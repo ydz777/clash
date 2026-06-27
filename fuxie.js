@@ -191,6 +191,7 @@ const proxyRules = [
   'GEOSITE,private,本地直连',
 
   // 特殊域名按业务分组，避免全部挤到默认节点选择。
+  'DOMAIN-SUFFIX,push.apple.com,手动选择',
   'GEOSITE,category-ai-!cn,AI',
   'GEOSITE,telegram,Telegram',
   'GEOSITE,youtube,youtube',
