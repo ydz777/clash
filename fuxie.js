@@ -9,16 +9,16 @@ const REGION_GROUPS = [
   { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
   { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
   { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
-  { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
-  { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
+  // { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
+  // { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
 ]
 
 // 按协议拆自动选择组，方便排查某类协议的节点质量。
 const AUTO_PROTOCOL_GROUPS = [
   { name: '自动选择(vless)', filter: '(?i)(vless)', icon: 'Auto' },
-  { name: '自动选择(anytls)', filter: '(?i)(anytls)', icon: 'Auto' },
-  { name: '自动选择(tuic)', filter: '(?i)(tuic)', icon: 'Auto' },
-  { name: '自动选择(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
+  // { name: '自动选择(anytls)', filter: '(?i)(anytls)', icon: 'Auto' },
+  // { name: '自动选择(tuic)', filter: '(?i)(tuic)', icon: 'Auto' },
+  // { name: '自动选择(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
 ]
 
 // 默认策略先走协议自动选择组，再给手动和地区组兜底。
