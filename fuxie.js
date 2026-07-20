@@ -1,9 +1,6 @@
 const URL_TEST = 'https://www.gstatic.com/generate_204'
 const ICON_BASE_URL = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color'
 
-// 默认候选里的地区顺序，和面板展示顺序可以不同。
-const REGION_PROXY_ORDER = ['香港节点', '台湾节点', '日本节点', '新加坡节点', '美国节点']
-
 // 地区自动选择组的展示顺序和筛选规则。
 const REGION_GROUPS = [
   { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
@@ -12,6 +9,8 @@ const REGION_GROUPS = [
   // { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
   // { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
 ]
+
+const REGION_PROXY_ORDER = REGION_GROUPS.map(({ name }) => name)
 
 // 按协议拆自动选择组，方便排查某类协议的节点质量。
 const AUTO_PROTOCOL_GROUPS = [
