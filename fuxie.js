@@ -23,7 +23,7 @@ const AUTO_PROTOCOL_GROUPS = [
 
 // 默认策略先走协议自动选择组，再给手动和地区组兜底。
 const AUTO_GROUP_NAMES = AUTO_PROTOCOL_GROUPS.map(({ name }) => name)
-const DEFAULT_STRATEGY_PROXIES = [...AUTO_GROUP_NAMES, '手动选择', ...REGION_PROXY_ORDER, '本地直连']
+const DEFAULT_STRATEGY_PROXIES = ['节点选择', '手动选择', ...AUTO_GROUP_NAMES, ...REGION_PROXY_ORDER, '本地直连']
 
 // Orz-3/mini 的 Color 图标文件名和策略组 icon 字段保持一致。
 const getIcon = (name) => `${ICON_BASE_URL}/${name}.png`
@@ -145,7 +145,7 @@ const createAutoTestGroup = ({ name, filter, icon, ...options }) => ({
   ...options,
 })
 
-// 构建选择组：默认候选策略由 DEFAULT_STRATEGY_PROXIES 统一维护。
+// 仅 url-test 的地区组 / 自动选择组不提供手动节点列表；其余 select 组都应 include-all。
 const createSelectGroup = ({ name, icon, proxies = DEFAULT_STRATEGY_PROXIES, includeAll = true }) => ({
   ...urlTestOptions,
   type: 'select',
@@ -157,11 +157,16 @@ const createSelectGroup = ({ name, icon, proxies = DEFAULT_STRATEGY_PROXIES, inc
 
 // 面板里展示的代理组顺序。
 const proxyGroups = [
-  createSelectGroup({ name: '节点选择', icon: 'Global', includeAll: false }),
+  createSelectGroup({
+    name: '节点选择',
+    icon: 'Global',
+    proxies: DEFAULT_STRATEGY_PROXIES.filter((name) => name !== '节点选择'),
+  }),
+
   createSelectGroup({
     name: '手动选择',
     icon: 'Manual',
-    proxies: DEFAULT_STRATEGY_PROXIES.filter((name) => name !== '手动选择'),
+    proxies: DEFAULT_STRATEGY_PROXIES.filter((name) => !['节点选择', '手动选择'].includes(name)),
   }),
 
   ...AUTO_PROTOCOL_GROUPS.map(createAutoTestGroup),
@@ -175,7 +180,7 @@ const proxyGroups = [
     icon: 'Apple',
     proxies: ['本地直连', ...DEFAULT_STRATEGY_PROXIES.filter((name) => name !== '本地直连')],
   }),
-  createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'] }),
+  createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'], includeAll: false }),
 
   ...REGION_GROUPS.map(createAutoTestGroup),
 
@@ -249,6 +254,5 @@ function main(config) {
   }
 
   console.log(`✅ 配置生成完成: ${proxyGroups.length} 个代理组 / ${proxyRules.length} 条规则`)
-
   return finalConfig
 }
