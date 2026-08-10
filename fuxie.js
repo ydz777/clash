@@ -91,8 +91,8 @@ const baseConfig = {
     stack: 'mixed',
     'auto-route': true,
     'auto-detect-interface': true,
-    'dns-hijack': ['any:53'],
-    'endpoint-independent-nat': true,
+    'strict-route': true,
+    'dns-hijack': ['any:53', 'tcp://any:53'],
     mtu: 1460,
   },
 
@@ -245,8 +245,29 @@ function main(config) {
   console.log('🧩 合并内置代理组、规则和基础配置')
 
   const finalConfig = {
-    ...baseConfig,
     ...config,
+    ...baseConfig,
+
+    dns: {
+      ...(config.dns || {}),
+      ...baseConfig.dns,
+    },
+
+    tun: {
+      ...(config.tun || {}),
+      ...baseConfig.tun,
+    },
+
+    sniffer: {
+      ...(config.sniffer || {}),
+      ...baseConfig.sniffer,
+    },
+
+    profile: {
+      ...(config.profile || {}),
+      ...baseConfig.profile,
+    },
+
     proxies,
     'proxy-groups': proxyGroups,
     rules: proxyRules,
