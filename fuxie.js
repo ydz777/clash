@@ -218,7 +218,7 @@ const proxyRules = [
   // GEOIP 只匹配已经是 IP 的连接；no-resolve 避免未命中 GEOSITE 的域名再走一遍 DNS。
   'GEOIP,telegram,Telegram,no-resolve',
   'GEOIP,private,本地直连,no-resolve',
-  'GEOIP,CN,本地直连,no-resolve',
+  'GEOIP,CN,本地直连',
   'MATCH,漏网之鱼',
 ]
 
