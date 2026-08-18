@@ -1,9 +1,9 @@
 const URL_TEST = 'https://www.gstatic.com/generate_204'
-const ICON_BASE_URL = 'https://raw.githubusercontent.com/Orz-3/mini/master/Color'
+const ICON_BASE_URL = 'https://gh-proxy.com/https://raw.githubusercontent.com/Orz-3/mini/master/Color'
 
 // 地区自动选择组的展示顺序和筛选规则。
 const REGION_GROUPS = [
-  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|us|unitedstates|united states)' },
+  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|\\bUS\\b|united[-\\s]?states)' },
   { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
   { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
   // { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
@@ -118,20 +118,20 @@ const baseConfig = {
   },
 }
 
-// url-test/select 共享的测速配置。
+// 仅 url-test 组测速；select 组不带 interval，避免每个策略组重复探测全部节点。
 const urlTestOptions = {
   url: URL_TEST,
   interval: 600,
   timeout: 3000,
   lazy: true,
   'max-failed-times': 3,
-  hidden: false,
 }
 
 // url-test 组按协议或地区筛选节点，并自动选择延迟较低的节点。
 const autoTestOptions = {
   type: 'url-test',
   'include-all': true,
+  'exclude-type': 'direct',
 }
 
 // 构建自动选择组：协议组和地区组都走同一套模板。
@@ -144,9 +144,8 @@ const createAutoTestGroup = ({ name, filter, icon, ...options }) => ({
   ...options,
 })
 
-// 仅 url-test 的地区组 / 自动选择组不提供手动节点列表；其余 select 组都应 include-all。
+// 手动选择、节点选择等 select 组可以 include-all；漏网之鱼 / 本地直连只保留指定策略。
 const createSelectGroup = ({ name, icon, proxies = DEFAULT_STRATEGY_PROXIES, includeAll = true }) => ({
-  ...urlTestOptions,
   type: 'select',
   name,
   proxies,
@@ -183,7 +182,7 @@ const proxyGroups = [
 
   ...REGION_GROUPS.map(createAutoTestGroup),
 
-  createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'] }),
+  createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'], includeAll: false }),
 ]
 
 // 规则按顺序命中，越具体的规则越靠前。
@@ -216,9 +215,10 @@ const proxyRules = [
   'GEOSITE,tld-cn,本地直连',
   'GEOSITE,cn,本地直连',
 
-  'GEOIP,telegram,Telegram',
-  'GEOIP,private,本地直连',
-  'GEOIP,CN,本地直连',
+  // GEOIP 只匹配已经是 IP 的连接；no-resolve 避免未命中 GEOSITE 的域名再走一遍 DNS。
+  'GEOIP,telegram,Telegram,no-resolve',
+  'GEOIP,private,本地直连,no-resolve',
+  'GEOIP,CN,本地直连,no-resolve',
   'MATCH,漏网之鱼',
 ]
 
