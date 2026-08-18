@@ -103,7 +103,7 @@ const baseConfig = {
     'override-destination': true,
     sniff: {
       TLS: { ports: [443, 8443] },
-      HTTP: { ports: [80, 8080, 8081, 8090] },
+      HTTP: { ports: [80, '8080-8880'] },
       QUIC: { ports: [443, 8443] },
     },
     // 小米、蒲公英、Apple 推送这类域名跳过嗅探，避免误判目标。
