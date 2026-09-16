@@ -73,7 +73,7 @@ const baseConfig = {
     listen: '0.0.0.0:7874',
     'use-hosts': false,
     'use-system-hosts': false,
-    'prefer-h3': false,
+    'prefer-h3': true,
     'respect-rules': false,
     'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip',
@@ -187,9 +187,6 @@ const proxyGroups = [
 
 // 规则按顺序命中，越具体的规则越靠前。
 const proxyRules = [
-  // 禁用 QUIC / HTTP3，避免浏览器先走 UDP 443 超时再回退 TCP
-  // 'AND,((NETWORK,UDP),(DST-PORT,443)),REJECT',
-
   // 局域网和国内流量优先直连，减少不必要的代理绕路。
   'GEOSITE,private,本地直连',
 
