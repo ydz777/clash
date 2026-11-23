@@ -1,5 +1,6 @@
+const GH_PROXY = 'https://gh-proxy.com'
 const URL_TEST = 'https://www.gstatic.com/generate_204'
-const ICON_BASE_URL = 'https://gh-proxy.com/https://raw.githubusercontent.com/Orz-3/mini/master/Color'
+const ICON_BASE_URL = `${GH_PROXY}/https://raw.githubusercontent.com/Orz-3/mini/master/Color`
 
 // 地区自动选择组的展示顺序和筛选规则。
 const REGION_GROUPS = [
@@ -42,7 +43,7 @@ const baseConfig = {
 
   // 通用行为
   mode: 'rule',
-  'log-level': 'info',
+  'log-level': 'warning',
   ipv6: false,
   'find-process-mode': 'strict',
   'unified-delay': true,
@@ -53,17 +54,18 @@ const baseConfig = {
   secret: '9527',
   'external-ui': 'ui',
   'external-ui-name': 'zashboard',
-  'external-ui-url': 'https://gh-proxy.com/github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip',
+  'external-ui-url': `${GH_PROXY}/github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip`,
 
-  // Geo 数据自动更新
+  // Geo 数据自动更新（省内存按需加载）
   'geodata-mode': true,
+  'geodata-loader': 'memconservative',
   'geo-auto-update': true,
   'geo-update-interval': 24,
   'geox-url': {
-    geoip: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat',
-    geosite: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat',
-    mmdb: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb',
-    asn: 'https://gh-proxy.com/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb',
+    geoip: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat`,
+    geosite: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat`,
+    mmdb: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb`,
+    asn: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb`,
   },
 
   // DNS 使用 fake-ip 模式，国内 DoH 负责默认解析和代理服务器解析。
@@ -73,13 +75,30 @@ const baseConfig = {
     listen: '0.0.0.0:7874',
     'use-hosts': false,
     'use-system-hosts': false,
-    'prefer-h3': true,
+    'prefer-h3': false,
     'respect-rules': false,
     'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
-    // 这些域名不适合 fake-ip，保持真实解析能减少局域网和连通性检测异常。
-    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'geosite:cn', 'geosite:private', 'geosite:connectivity-check'],
+    'fake-ip-filter-mode': 'blacklist',
+    // 这些域名不适合 fake-ip，保持真实解析能减少局域网、校时、STUN 和连通性检测异常。
+    'fake-ip-filter': [
+      '+.lan',
+      '+.local',
+      'time.*.com',
+      'time.*.gov',
+      'time.*.edu.cn',
+      'ntp.*.com',
+      'ntp.*.cn',
+      '+.ntp.org',
+      '+.pool.ntp.org',
+      '+.stun.*.*',
+      '+.stun.*.*.*',
+      'localhost.ptlogin2.qq.com',
+      'geosite:cn',
+      'geosite:private',
+      'geosite:connectivity-check',
+    ],
     'default-nameserver': ['223.5.5.5', '119.29.29.29'],
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
     'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
@@ -118,11 +137,12 @@ const baseConfig = {
   },
 }
 
-// 仅 url-test 组测速；select 组不带 interval，避免每个策略组重复探测全部节点。
+// 仅 url-test 组测速；tolerance 避免节点延迟小幅波动导致频繁切出口。
 const urlTestOptions = {
   url: URL_TEST,
   interval: 600,
   timeout: 3000,
+  tolerance: 80,
   lazy: true,
   'max-failed-times': 3,
 }
@@ -169,7 +189,11 @@ const proxyGroups = [
 
   ...AUTO_PROTOCOL_GROUPS.map(createAutoTestGroup),
 
-  createSelectGroup({ name: 'AI', icon: 'ASN' }),
+  createSelectGroup({
+    name: 'AI',
+    icon: 'ASN',
+    proxies: ['美国节点', ...DEFAULT_STRATEGY_PROXIES.filter((name) => name !== '美国节点')],
+  }),
   createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
   createSelectGroup({ name: 'youtube', icon: 'YouTube' }),
   createSelectGroup({ name: 'google', icon: 'Google' }),
@@ -187,7 +211,7 @@ const proxyGroups = [
 
 // 规则按顺序命中，越具体的规则越靠前。
 const proxyRules = [
-  // 局域网和国内流量优先直连，减少不必要的代理绕路。
+  // 局域网流量优先直连，减少不必要的代理绕路。
   'GEOSITE,private,本地直连',
 
   // 特殊域名按业务分组，避免全部挤到默认节点选择。
@@ -202,20 +226,22 @@ const proxyRules = [
   'GEOSITE,spotify,节点选择',
   'GEOSITE,onedrive,节点选择',
   'GEOSITE,category-scholar-!cn,节点选择',
-  'GEOSITE,geolocation-!cn,节点选择',
 
+  // @cn 子集必须在 geolocation-!cn 之前，否则会被 geolocation-!cn 提前截胡。
   'GEOSITE,category-games@cn,本地直连',
   'GEOSITE,microsoft@cn,本地直连',
   'GEOSITE,steam@cn,本地直连',
+
+  'GEOSITE,geolocation-!cn,节点选择',
 
   'GEOSITE,geolocation-cn,本地直连',
   'GEOSITE,tld-cn,本地直连',
   'GEOSITE,cn,本地直连',
 
-  // GEOIP 只匹配已经是 IP 的连接；no-resolve 避免未命中 GEOSITE 的域名再走一遍 DNS。
+  // GEOIP 全部使用 no-resolve：纯 IP 照常分流，未命中 GEOSITE 的域名直接交由 MATCH 远端解析。
   'GEOIP,telegram,Telegram,no-resolve',
   'GEOIP,private,本地直连,no-resolve',
-  'GEOIP,CN,本地直连',
+  'GEOIP,CN,本地直连,no-resolve',
   'MATCH,漏网之鱼',
 ]
 
@@ -245,30 +271,20 @@ function main(config) {
     ...config,
     ...baseConfig,
 
-    dns: {
-      ...(config.dns || {}),
-      ...baseConfig.dns,
-    },
-
-    tun: {
-      ...(config.tun || {}),
-      ...baseConfig.tun,
-    },
-
-    sniffer: {
-      ...(config.sniffer || {}),
-      ...baseConfig.sniffer,
-    },
-
-    profile: {
-      ...(config.profile || {}),
-      ...baseConfig.profile,
-    },
+    // 整体覆盖核心模块，避免残留上游订阅中的脏字段（如 fallback、whitelist 等）。
+    dns: { ...baseConfig.dns },
+    tun: { ...baseConfig.tun },
+    sniffer: { ...baseConfig.sniffer },
+    profile: { ...baseConfig.profile },
 
     proxies,
     'proxy-groups': proxyGroups,
     rules: proxyRules,
   }
+
+  // 本模板使用 Geodata 分流，清掉上游订阅可能自带的外部规则集，避免无效拉取或冲突。
+  delete finalConfig['rule-providers']
+  delete finalConfig['sub-rules']
 
   console.log(`✅ 配置生成完成: ${proxyGroups.length} 个代理组 / ${proxyRules.length} 条规则`)
   return finalConfig
