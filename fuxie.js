@@ -238,10 +238,11 @@ const proxyRules = [
   'GEOSITE,tld-cn,本地直连',
   'GEOSITE,cn,本地直连',
 
-  // GEOIP 全部使用 no-resolve：纯 IP 照常分流，未命中 GEOSITE 的域名直接交由 MATCH 远端解析。
+  // Telegram 和私有网段只检查已有的目标 IP，避免提前触发 DNS 解析。
   'GEOIP,telegram,Telegram,no-resolve',
   'GEOIP,private,本地直连,no-resolve',
-  'GEOIP,CN,本地直连,no-resolve',
+  // 域名规则未命中时解析目标 IP，为遗漏的中国大陆域名兜底。
+  'GEOIP,CN,本地直连',
   'MATCH,漏网之鱼',
 ]
 
