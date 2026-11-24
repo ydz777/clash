@@ -224,18 +224,18 @@ const proxyRules = [
   'GEOSITE,twitter,节点选择',
   'GEOSITE,github,节点选择',
   'GEOSITE,spotify,节点选择',
-  'GEOSITE,onedrive,节点选择',
+  // 微软国内域名可能同时命中 OneDrive 规则，先匹配国内子集。
+  'GEOSITE,microsoft@cn,本地直连',
+
   'GEOSITE,category-scholar-!cn,节点选择',
 
-  // @cn 子集必须在 geolocation-!cn 之前，否则会被 geolocation-!cn 提前截胡。
+  // 国内业务子集、地域和顶级域名规则优先于海外地域规则，避免重叠域名误走代理。
   'GEOSITE,category-games@cn,本地直连',
-  'GEOSITE,microsoft@cn,本地直连',
   'GEOSITE,steam@cn,本地直连',
-
-  'GEOSITE,geolocation-!cn,节点选择',
-
   'GEOSITE,geolocation-cn,本地直连',
   'GEOSITE,tld-cn,本地直连',
+
+  'GEOSITE,geolocation-!cn,节点选择',
   'GEOSITE,cn,本地直连',
 
   // Telegram 和私有网段只检查已有的目标 IP，避免提前触发 DNS 解析。
