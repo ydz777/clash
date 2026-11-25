@@ -40,6 +40,7 @@ const baseConfig = {
     'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip',
     'fake-ip-range': '198.18.0.1/16',
+
     // 命中过滤条件的域名返回真实 IP，避免干扰局域网访问和连通性检测。
     'fake-ip-filter-mode': 'blacklist',
     'fake-ip-filter': [
@@ -47,10 +48,12 @@ const baseConfig = {
       '+.local',
       'time.*.com',
       'ntp.*.com',
-      'rule-set:china',
-      'rule-set:lan-domain',
-      'rule-set:connectivity-check',
+      'rule-set:private_domain',
+      'rule-set:cn_domain',
+      'rule-set:fakeipfilter_cn',
+      'rule-set:fakeipfilter_!cn',
     ],
+
     'default-nameserver': ['223.5.5.5', '119.29.29.29'],
     nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
     'proxy-server-nameserver': ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
@@ -106,38 +109,31 @@ const AUTO_PROTOCOL_GROUPS = [
   // { name: '自动选择(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
 ]
 
-// 业务选择组的通用出口顺序，「节点选择」排在首位。
-const DEFAULT_STRATEGY_PROXIES = [
-  '节点选择',
-  '手动选择',
+// 选择组按协议、地区的顺序列出可用的测速组。
+const SPEED_TEST_GROUP_NAMES = [
   ...AUTO_PROTOCOL_GROUPS.map(({ name }) => name),
   ...REGION_GROUPS.map(({ name }) => name),
-  '本地直连',
 ]
 
+// 业务组默认跟随「节点选择」，也可以单独指定出口。
+const DEFAULT_STRATEGY_PROXIES = ['节点选择', '手动选择', ...SPEED_TEST_GROUP_NAMES, '本地直连']
+
 const ICON_BASE_URL = 'https://gh-proxy.com/https://raw.githubusercontent.com/Orz-3/mini/master/Color'
-const getIcon = (name) => `${ICON_BASE_URL}/${name}.png`
+const getIconUrl = (name) => `${ICON_BASE_URL}/${name}.png`
 
-// 节点测速使用的 HTTP 连通性检测地址。
-const URL_TEST = 'https://www.gstatic.com/generate_204'
-
-// 仅在测速组设置探测周期，减少重复测速。
-const autoTestOptions = {
-  url: URL_TEST,
-  interval: 600,
-  timeout: 3000,
+// 只有测速组发起探测，业务选择组复用测速结果。
+const createAutoTestGroup = ({ name, filter, icon, ...options }) => ({
+  url: 'https://www.gstatic.com/generate_204',
+  interval: 600, // 两次探测的间隔，单位为秒。
+  timeout: 3000, // 单次探测的超时，单位为毫秒。
   lazy: true,
   'max-failed-times': 3,
   type: 'url-test',
   'include-all': true,
   'exclude-type': 'direct',
-}
-
-const createAutoTestGroup = ({ name, filter, icon, ...options }) => ({
-  ...autoTestOptions,
   name,
   filter,
-  icon: getIcon(icon),
+  icon: getIconUrl(icon),
   ...options,
 })
 
@@ -146,7 +142,7 @@ const createSelectGroup = ({ name, icon, proxies = DEFAULT_STRATEGY_PROXIES, inc
   type: 'select',
   name,
   proxies,
-  icon: getIcon(icon),
+  icon: getIconUrl(icon),
   'include-all': includeAll,
 })
 
@@ -154,93 +150,104 @@ const proxyGroups = [
   createSelectGroup({
     name: '节点选择',
     icon: 'Global',
-    proxies: DEFAULT_STRATEGY_PROXIES.filter((name) => name !== '节点选择'),
+    proxies: ['手动选择', ...SPEED_TEST_GROUP_NAMES, '本地直连'],
   }),
-
   createSelectGroup({
     name: '手动选择',
     icon: 'Manual',
-    proxies: DEFAULT_STRATEGY_PROXIES.filter((name) => !['节点选择', '手动选择'].includes(name)),
+    proxies: [...SPEED_TEST_GROUP_NAMES, '本地直连'],
   }),
 
   ...AUTO_PROTOCOL_GROUPS.map(createAutoTestGroup),
 
   createSelectGroup({ name: 'OpenAI', icon: 'ASN' }),
   createSelectGroup({ name: 'Claude', icon: 'ASN' }),
-  createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
+  createSelectGroup({ name: 'AI', icon: 'ASN' }),
   createSelectGroup({ name: 'youtube', icon: 'YouTube' }),
   createSelectGroup({ name: 'google', icon: 'Google' }),
+  createSelectGroup({ name: 'GitHub', icon: 'github' }),
+  createSelectGroup({ name: 'Microsoft', icon: 'Microsoft' }),
   createSelectGroup({
     name: 'Apple',
     icon: 'Apple',
-    proxies: ['本地直连', ...DEFAULT_STRATEGY_PROXIES.filter((name) => name !== '本地直连')],
+    proxies: ['本地直连', '节点选择', '手动选择', ...SPEED_TEST_GROUP_NAMES],
   }),
+  createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
+
   createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'], includeAll: false }),
-
   ...REGION_GROUPS.map(createAutoTestGroup),
-
   createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'], includeAll: false }),
 ]
 
-// 每 86400 秒刷新当前文件。MagicRule 换下载地址时需要更新对应文件名。
-const createMagicRuleProvider = (file, behavior = 'classical', host = 'magicrule.pages.dev') => ({
+// MetaCubeX 的 meta 分支提供域名和 IP 分流规则。
+const META_RULE_BASE_URL = 'https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta'
+// DNS 的 fake-IP 例外清单单独取自 qichiyuhub。
+const FAKE_IP_RULE_BASE_URL = 'https://raw.githubusercontent.com/qichiyuhub/rule/refs/heads/main/rules'
+
+const createRuleProvider = (url, behavior, format = 'mrs') => ({
   type: 'http',
-  interval: 86400,
+  interval: 86400, // Mihomo 以秒为单位，每天更新一次规则集。
   behavior,
-  format: behavior === 'classical' ? 'yaml' : 'mrs',
-  url: `https://${host}/data/_shared/artifacts/${file}`,
+  format,
+  url,
 })
 
+const createDomainProvider = (name) => createRuleProvider(`${META_RULE_BASE_URL}/geo/geosite/${name}.mrs`, 'domain')
+const createIpProvider = (name, directory = 'geo') => createRuleProvider(`${META_RULE_BASE_URL}/${directory}/geoip/${name}.mrs`, 'ipcidr')
+
 const ruleProviders = {
-  'lan-domain': createMagicRuleProvider('Lan_domain-mrs_1e7f3014460f64eb.mrs', 'domain'),
-  direct: createMagicRuleProvider('Direct_classical_055a900ccd414d6a.yaml'),
-  // 完整 YAML 保留主域名匹配，IP-ASN 条目由 Mihomo 使用 ASN 数据库处理。
-  openai: createMagicRuleProvider('OpenAI_classical_cda01886e7b2ee62.yaml'),
-  anthropic: createMagicRuleProvider('Anthropic_classical_e8dc18b70475045a.yaml'),
-  telegram: createMagicRuleProvider('Telegram_classical_ec67e1f0a43104a8.yaml'),
-  youtube: createMagicRuleProvider('YouTube_classical_59b6d0fe3b15c19e.yaml'),
-  google: createMagicRuleProvider('Google_classical_fe2edb12daf1b32f.yaml'),
-  apple: createMagicRuleProvider('Apple_classical_0fa29647e779e764.yaml'),
-  twitter: createMagicRuleProvider('Twitter_classical_d405159ccf6c8682.yaml'),
-  github: createMagicRuleProvider('GitHub_classical_66f5a463ca33f147.yaml'),
-  spotify: createMagicRuleProvider('Spotify_classical_822ce41d873a2ee4.yaml'),
-  onedrive: createMagicRuleProvider('OneDrive_classical_b66da0833f479d0f.yaml'),
-  'global-scholar': createMagicRuleProvider('GlobalScholar_classical_619cb5c181684903.yaml'),
-  global: createMagicRuleProvider('Global_classical_84d7c926159da35f.yaml'),
-  'china-game': createMagicRuleProvider('ChinaGame_classical_1f74479d4a303e01.yaml'),
-  'steam-cn': createMagicRuleProvider('SteamCN_classical_f12eaf58b7866555.yaml'),
-  china: createMagicRuleProvider('China_classical_488d107c687bae96.yaml'),
-  'lan-ip': createMagicRuleProvider('Lan_ipcidr-mrs_6d0ea10e6866d187.mrs', 'ipcidr'),
-  'china-ip': createMagicRuleProvider('ChinaIPs_ipcidr-mrs_b1f5c4b4a88c72f3.mrs', 'ipcidr'),
-  'connectivity-check': createMagicRuleProvider('ConnectivityCheck_classical_5e912f963f815506.yaml', 'classical', 'rule-26r.pages.dev'),
+  private_domain: createDomainProvider('private'),
+  openai_domain: createDomainProvider('openai'),
+  anthropic_domain: createDomainProvider('anthropic'),
+  ai_domain: createDomainProvider('category-ai-!cn'),
+  youtube_domain: createDomainProvider('youtube'),
+  google_domain: createDomainProvider('google'),
+  github_domain: createDomainProvider('github'),
+  microsoftcn_domain: createDomainProvider('microsoft@cn'),
+  microsoft_domain: createDomainProvider('microsoft'),
+  applecn_domain: createDomainProvider('apple@cn'),
+  apple_domain: createDomainProvider('apple'),
+  telegram_domain: createDomainProvider('telegram'),
+  'cn!_domain': createDomainProvider('geolocation-!cn'),
+
+  private_ip: createIpProvider('private'),
+  google_ip: createIpProvider('google'),
+  apple_ip: createIpProvider('apple', 'geo-lite'),
+  telegram_ip: createIpProvider('telegram'),
+  cn_ip: createIpProvider('cn'),
+
+  // 这三份规则集仅供 DNS 的 fake-IP 过滤使用。
+  cn_domain: createDomainProvider('cn'),
+  fakeipfilter_cn: createRuleProvider(`${FAKE_IP_RULE_BASE_URL}/fakeipfilter-cn.list`, 'domain', 'text'),
+  'fakeipfilter_!cn': createRuleProvider(`${FAKE_IP_RULE_BASE_URL}/fakeipfilter-!cn.list`, 'domain', 'text'),
 }
 
-// 规则按顺序命中，越具体的规则越靠前。
 const proxyRules = [
-  'RULE-SET,lan-domain,本地直连',
-  'RULE-SET,direct,本地直连',
+  'RULE-SET,private_ip,本地直连,no-resolve',
+  'RULE-SET,private_domain,本地直连',
 
-  // 特殊域名按业务分组，避免全部挤到默认节点选择。
-  'RULE-SET,openai,OpenAI,no-resolve',
-  'RULE-SET,anthropic,Claude,no-resolve',
-  'RULE-SET,telegram,Telegram,no-resolve',
-  'RULE-SET,youtube,youtube,no-resolve',
-  'RULE-SET,google,google,no-resolve',
-  'RULE-SET,apple,Apple,no-resolve',
-  'RULE-SET,twitter,节点选择,no-resolve',
-  'RULE-SET,github,节点选择',
-  'RULE-SET,spotify,节点选择,no-resolve',
-  'RULE-SET,onedrive,节点选择',
-  'RULE-SET,global-scholar,节点选择',
+  // OpenAI、Claude 可以独立选节点，其余命中 AI 规则的域名走公共组。
+  'RULE-SET,openai_domain,OpenAI',
+  'RULE-SET,anthropic_domain,Claude',
+  'RULE-SET,ai_domain,AI',
 
-  'RULE-SET,china-game,本地直连',
-  'RULE-SET,steam-cn,本地直连',
-  'RULE-SET,global,节点选择,no-resolve',
-  'RULE-SET,china,本地直连,no-resolve',
+  'RULE-SET,youtube_domain,youtube',
+  'RULE-SET,google_domain,google',
+  'RULE-SET,github_domain,GitHub',
 
-  // 局域网匹配已有目标 IP，中国 IP 兜底允许解析域名后再匹配。
-  'RULE-SET,lan-ip,本地直连,no-resolve',
-  'RULE-SET,china-ip,本地直连',
+  // 微软和 Apple 的国内域名先直连，再匹配各自的完整规则集。
+  'RULE-SET,microsoftcn_domain,本地直连',
+  'RULE-SET,microsoft_domain,Microsoft',
+  'RULE-SET,applecn_domain,本地直连',
+  'RULE-SET,apple_domain,Apple',
+  'RULE-SET,telegram_domain,Telegram',
+
+  // 已收录的境外域名走「节点选择」，其余流量继续按目标 IP 匹配。
+  'RULE-SET,cn!_domain,节点选择',
+  'RULE-SET,google_ip,google',
+  'RULE-SET,apple_ip,Apple',
+  'RULE-SET,telegram_ip,Telegram',
+  'RULE-SET,cn_ip,本地直连',
   'MATCH,漏网之鱼',
 ]
 
@@ -251,6 +258,7 @@ function main(config) {
   // 订阅可以直接提供节点，也可以用代理提供者在运行时加载节点。
   const proxies = Array.isArray(config?.proxies) ? config.proxies : []
   const proxyProviders = config?.['proxy-providers']
+
   let proxyProviderCount = 0
   if (proxyProviders && typeof proxyProviders === 'object') {
     proxyProviderCount = Object.keys(proxyProviders).length
@@ -270,22 +278,10 @@ function main(config) {
     ...baseConfig,
 
     // 同名设置以脚本为准，保留订阅中其余的子项。
-    dns: {
-      ...config.dns,
-      ...baseConfig.dns,
-    },
-    tun: {
-      ...config.tun,
-      ...baseConfig.tun,
-    },
-    sniffer: {
-      ...config.sniffer,
-      ...baseConfig.sniffer,
-    },
-    profile: {
-      ...config.profile,
-      ...baseConfig.profile,
-    },
+    dns: { ...config.dns, ...baseConfig.dns },
+    tun: { ...config.tun, ...baseConfig.tun },
+    sniffer: { ...config.sniffer, ...baseConfig.sniffer },
+    profile: { ...config.profile, ...baseConfig.profile },
 
     proxies,
     'proxy-groups': proxyGroups,
