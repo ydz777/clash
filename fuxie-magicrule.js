@@ -1,3 +1,6 @@
+// GitHub 公开文件的下载代理。
+const GH_PROXY = 'https://gh-proxy.com'
+
 // Mihomo 的监听、DNS 和流量接管设置。
 const baseConfig = {
   // 端口设置
@@ -13,7 +16,7 @@ const baseConfig = {
 
   // 通用行为
   mode: 'rule',
-  'log-level': 'info',
+  'log-level': 'warning',
   ipv6: false,
   'find-process-mode': 'strict',
   'unified-delay': true,
@@ -24,9 +27,19 @@ const baseConfig = {
   secret: '9527',
   'external-ui': 'ui',
   'external-ui-name': 'zashboard',
-  'external-ui-url': 'https://gh-proxy.com/github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip',
+  'external-ui-url': `${GH_PROXY}/github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip`,
 
-  'geo-auto-update': false,
+  // Geo 数据按需加载，每 24 小时自动更新。
+  'geodata-mode': true,
+  'geodata-loader': 'memconservative',
+  'geo-auto-update': true,
+  'geo-update-interval': 24,
+  'geox-url': {
+    geoip: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat`,
+    geosite: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat`,
+    mmdb: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb`,
+    asn: `${GH_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest/GeoLite2-ASN.mmdb`,
+  },
 
   // DNS 使用 fake-ip 模式，国内 DoH 负责默认解析和代理服务器解析。
   dns: {
@@ -35,7 +48,7 @@ const baseConfig = {
     listen: '0.0.0.0:7874',
     'use-hosts': false,
     'use-system-hosts': false,
-    'prefer-h3': true,
+    'prefer-h3': false,
     'respect-rules': false,
     'cache-algorithm': 'arc',
     'enhanced-mode': 'fake-ip',
@@ -118,7 +131,7 @@ const SPEED_TEST_GROUP_NAMES = [
 // 业务组默认跟随「节点选择」，也可以单独指定出口。
 const DEFAULT_STRATEGY_PROXIES = ['节点选择', '手动选择', ...SPEED_TEST_GROUP_NAMES, '本地直连']
 
-const ICON_BASE_URL = 'https://gh-proxy.com/https://raw.githubusercontent.com/Orz-3/mini/master/Color'
+const ICON_BASE_URL = `${GH_PROXY}/https://raw.githubusercontent.com/Orz-3/mini/master/Color`
 const getIconUrl = (name) => `${ICON_BASE_URL}/${name}.png`
 
 // 只有测速组发起探测，业务选择组复用测速结果。
@@ -217,7 +230,7 @@ const ruleProviders = {
   cn_ip: createIpProvider('cn'),
 
   // 这三份规则集仅供 DNS 的 fake-IP 过滤使用。
-  cn_domain: createDomainProvider('cn'),
+  cn_domain: createRuleProvider(`${GH_PROXY}/${META_RULE_BASE_URL}/geo/geosite/cn.mrs`, 'domain'),
   fakeipfilter_cn: createRuleProvider(`${FAKE_IP_RULE_BASE_URL}/fakeipfilter-cn.list`, 'domain', 'text'),
   'fakeipfilter_!cn': createRuleProvider(`${FAKE_IP_RULE_BASE_URL}/fakeipfilter-!cn.list`, 'domain', 'text'),
 }
@@ -277,11 +290,11 @@ function main(config) {
     ...config,
     ...baseConfig,
 
-    // 同名设置以脚本为准，保留订阅中其余的子项。
-    dns: { ...config.dns, ...baseConfig.dns },
-    tun: { ...config.tun, ...baseConfig.tun },
-    sniffer: { ...config.sniffer, ...baseConfig.sniffer },
-    profile: { ...config.profile, ...baseConfig.profile },
+    // 整体覆盖这些模块，避免订阅附带的 fallback、nameserver-policy 等字段改变运行行为。
+    dns: { ...baseConfig.dns },
+    tun: { ...baseConfig.tun },
+    sniffer: { ...baseConfig.sniffer },
+    profile: { ...baseConfig.profile },
 
     proxies,
     'proxy-groups': proxyGroups,
@@ -291,11 +304,6 @@ function main(config) {
     },
     rules: proxyRules,
   }
-
-  // 规则集负责更新，清掉输入订阅可能带入的 Geo 数据下载设置。
-  delete finalConfig['geodata-mode']
-  delete finalConfig['geo-update-interval']
-  delete finalConfig['geox-url']
 
   console.log(`✅ 配置生成完成: ${proxyGroups.length} 个代理组 / ${proxyRules.length} 条规则`)
   return finalConfig
