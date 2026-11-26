@@ -2,8 +2,6 @@
 const GITHUB_DOWNLOAD_PROXY = 'https://gh-proxy.com'
 // Geo 数据下载地址，跟随 MetaCubeX 的最新发布。
 const GEO_DATA_RELEASE_URL = `${GITHUB_DOWNLOAD_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest`
-// 测速探测地址，返回 204 即可判断连通和延迟。
-const URL_TEST = 'https://www.gstatic.com/generate_204'
 
 const baseConfig = {
   // 入站监听
@@ -59,7 +57,16 @@ const baseConfig = {
 
     // 过滤列表里的域名返回真实 IP。
     'fake-ip-filter-mode': 'blacklist',
-    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com'],
+    'fake-ip-filter': [
+      '+.lan',
+      '+.local',
+      'time.*.com',
+      'ntp.*.com',
+      'rule-set:private_domain',
+      'rule-set:cn_domain',
+      'rule-set:fakeipfilter_cn',
+      'rule-set:fakeipfilter_!cn',
+    ],
 
     // 先用 IP 地址形式的 DNS 解析 DoH 服务器域名。
     'default-nameserver': ['223.5.5.5', '119.29.29.29'],
@@ -101,9 +108,9 @@ const baseConfig = {
   },
 }
 
-// 按节点名匹配地区，正则忽略大小写。US 前后可以是下划线、连字符或数字，避免把 AUS、USB 收进来。
+// 按节点名匹配地区，正则忽略大小写。美国节点的 US 缩写只匹配独立单词。
 const REGION_GROUPS = [
-  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|(^|[^A-Za-z])US([^A-Za-z]|$)|united[-\\s]?states)' },
+  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|\\bUS\\b|united[-\\s]?states)' },
   { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
 
   // { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
@@ -111,28 +118,39 @@ const REGION_GROUPS = [
   // { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
 ]
 
-const REGION_GROUP_NAMES = REGION_GROUPS.map(({ name }) => name)
+// 协议测速组按节点名中的协议标记筛选。
+const AUTO_PROTOCOL_GROUPS = [
+  { name: '自动选择(vless)', filter: '(?i)(vless)', icon: 'Auto' },
+  // { name: '自动选择(anytls)', filter: '(?i)(anytls)', icon: 'Auto' },
+  // { name: '自动选择(tuic)', filter: '(?i)(tuic)', icon: 'Auto' },
+  // { name: '自动选择(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
+]
 
-// 手动选择独立保留，业务组可以跳过节点选择，固定使用手动出口。
-const MANUAL_SELECTION_PROXIES = [...REGION_GROUP_NAMES, '本地直连']
-const EXTRA_SERVICE_PROXIES = ['手动选择', ...REGION_GROUP_NAMES]
-const OPENAI_AND_CLAUDE_PROXIES = ['节点选择', '手动选择', ...MANUAL_SELECTION_PROXIES]
+// 选择组按协议、地区的顺序列出可用的测速组。
+const SPEED_TEST_GROUP_NAMES = [
+  ...AUTO_PROTOCOL_GROUPS.map(({ name }) => name),
+  ...REGION_GROUPS.map(({ name }) => name),
+]
 
-// 保留参考配置的候选顺序，在业务组末尾补上手动和地区出口。
-const PROXY_FIRST_PROXIES = ['节点选择', '自动选择', 'DIRECT', 'REJECT']
-const DIRECT_FIRST_PROXIES = ['DIRECT', '节点选择', '自动选择', 'REJECT']
-const SERVICE_PROXIES = [...PROXY_FIRST_PROXIES, ...EXTRA_SERVICE_PROXIES]
-const DIRECT_SERVICE_PROXIES = [...DIRECT_FIRST_PROXIES, ...EXTRA_SERVICE_PROXIES]
+// 「节点选择」可以引用「手动选择」，反向引用会形成循环。
+const MANUAL_SELECTION_PROXIES = [...SPEED_TEST_GROUP_NAMES, '本地直连']
+const NODE_SELECTION_PROXIES = ['手动选择', ...MANUAL_SELECTION_PROXIES]
+
+// 面板没有已保存的选择时，业务组使用候选列表的首项。
+const DEFAULT_SERVICE_PROXIES = ['节点选择', ...NODE_SELECTION_PROXIES]
+const DIRECT_FIRST_PROXIES = [
+  '本地直连',
+  ...DEFAULT_SERVICE_PROXIES.filter((name) => name !== '本地直连'),
+]
 
 const ICON_BASE_URL = `${GITHUB_DOWNLOAD_PROXY}/https://raw.githubusercontent.com/Orz-3/mini/master/Color`
 const getIconUrl = (iconName) => `${ICON_BASE_URL}/${iconName}.png`
-const getReferenceIcon = (name) => `https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/${name}.png`
 
 // 只有测速组发起探测，业务选择组复用测速结果。
 const createSpeedTestGroup = ({ name, filter, icon, ...options }) => ({
-  url: URL_TEST,
-  interval: 600,
-  timeout: 3000,
+  url: 'https://www.gstatic.com/generate_204',
+  interval: 600, // 两次探测的间隔，单位为秒。
+  timeout: 3000, // 单次探测的超时，单位为毫秒。
   lazy: true,
   'max-failed-times': 3,
   type: 'url-test',
@@ -145,27 +163,33 @@ const createSpeedTestGroup = ({ name, filter, icon, ...options }) => ({
 })
 
 // includeAll 控制是否把订阅节点加入面板的候选列表。
-const createSelectGroup = ({ name, icon, proxies = SERVICE_PROXIES, includeAll = true }) => ({ type: 'select', name, icon, proxies, 'include-all': includeAll })
+const createSelectGroup = ({ name, icon, proxies = DEFAULT_SERVICE_PROXIES, includeAll = true }) => ({
+  type: 'select',
+  name,
+  proxies,
+  icon: getIconUrl(icon),
+  'include-all': includeAll,
+})
 
 const proxyGroups = [
-  createSelectGroup({ name: '节点选择', icon: getReferenceIcon('Proxy'), proxies: ['自动选择', ...EXTRA_SERVICE_PROXIES, 'DIRECT'] }),
-  createSelectGroup({ name: '手动选择', icon: getIconUrl('Manual'), proxies: MANUAL_SELECTION_PROXIES }),
-  { name: '自动选择', type: 'url-test', 'include-all': true, url: URL_TEST, interval: 300, icon: getReferenceIcon('Auto') },
+  createSelectGroup({ name: '节点选择', icon: 'Global', proxies: NODE_SELECTION_PROXIES }),
+  createSelectGroup({ name: '手动选择', icon: 'Manual', proxies: MANUAL_SELECTION_PROXIES }),
+
+  ...AUTO_PROTOCOL_GROUPS.map(createSpeedTestGroup),
+
+  createSelectGroup({ name: 'OpenAI', icon: 'ASN' }),
+  createSelectGroup({ name: 'Claude', icon: 'ASN' }),
+  createSelectGroup({ name: 'AI', icon: 'ASN' }),
+  createSelectGroup({ name: 'youtube', icon: 'YouTube' }),
+  createSelectGroup({ name: 'google', icon: 'Google' }),
+  createSelectGroup({ name: 'GitHub', icon: 'github' }),
+  createSelectGroup({ name: 'Microsoft', icon: 'Microsoft', proxies: DIRECT_FIRST_PROXIES }),
+  createSelectGroup({ name: 'Apple', icon: 'Apple', proxies: DIRECT_FIRST_PROXIES }),
+  createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
+
+  createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'], includeAll: false }),
   ...REGION_GROUPS.map(createSpeedTestGroup),
-  createSelectGroup({ name: '私有网络', icon: getReferenceIcon('WiFi'), proxies: DIRECT_FIRST_PROXIES }),
-  createSelectGroup({ name: 'AI 服务', icon: getReferenceIcon('AI') }),
-  createSelectGroup({ name: 'OpenAI', icon: getIconUrl('ASN'), proxies: OPENAI_AND_CLAUDE_PROXIES }),
-  createSelectGroup({ name: 'Claude', icon: getIconUrl('ASN'), proxies: OPENAI_AND_CLAUDE_PROXIES }),
-  createSelectGroup({ name: 'GitHub', icon: getReferenceIcon('GitHub') }),
-  createSelectGroup({ name: 'YouTube', icon: getReferenceIcon('YouTube') }),
-  createSelectGroup({ name: 'Telegram', icon: getReferenceIcon('Telegram') }),
-  createSelectGroup({ name: 'Google', icon: getReferenceIcon('Google_Search') }),
-  createSelectGroup({ name: '微软服务', icon: getReferenceIcon('Microsoft'), proxies: DIRECT_SERVICE_PROXIES }),
-  createSelectGroup({ name: '苹果服务', icon: getReferenceIcon('Apple'), proxies: DIRECT_SERVICE_PROXIES }),
-  createSelectGroup({ name: '国内服务', icon: getReferenceIcon('China'), proxies: DIRECT_FIRST_PROXIES }),
-  createSelectGroup({ name: '非中国', icon: getReferenceIcon('Global'), proxies: PROXY_FIRST_PROXIES }),
-  createSelectGroup({ name: '本地直连', icon: getIconUrl('China'), proxies: ['DIRECT'], includeAll: false }),
-  createSelectGroup({ name: '漏网之鱼', icon: getReferenceIcon('Final'), proxies: PROXY_FIRST_PROXIES }),
+  createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'], includeAll: false }),
 ]
 
 // MetaCubeX 的 meta 分支提供域名和 IP 分流规则。
@@ -183,66 +207,66 @@ const createRuleProvider = (url, behavior, format = 'mrs') => ({
 })
 
 const createDomainProvider = (name) => createRuleProvider(`${META_RULE_BASE_URL}/geo/geosite/${name}.mrs`, 'domain')
-const createIpProvider = (name, geoDirectory = 'geo') => createRuleProvider(`${META_RULE_BASE_URL}/${geoDirectory}/geoip/${name}.mrs`, 'ipcidr')
+const createIpProvider = (name, geoDirectory = 'geo') =>
+  createRuleProvider(`${META_RULE_BASE_URL}/${geoDirectory}/geoip/${name}.mrs`, 'ipcidr')
 
 const builtInRuleProviders = {
-  'site-private': createDomainProvider('private'),
-  'site-openai': createDomainProvider('openai'),
-  'site-anthropic': createDomainProvider('anthropic'),
-  'site-google-gemini': createDomainProvider('google-gemini'),
-  'site-category-ai-not-cn': createDomainProvider('category-ai-!cn'),
-  'site-youtube': createDomainProvider('youtube'),
-  'site-google': createDomainProvider('google'),
-  'site-github': createDomainProvider('github'),
-  'site-onedrive': createDomainProvider('onedrive'),
-  'site-microsoft-cn': createDomainProvider('microsoft@cn'),
-  'site-microsoft': createDomainProvider('microsoft'),
-  'site-apple-cn': createDomainProvider('apple@cn'),
-  'site-apple': createDomainProvider('apple'),
-  'site-telegram': createDomainProvider('telegram'),
-  'site-geolocation-not-cn': createDomainProvider('geolocation-!cn'),
+  private_domain: createDomainProvider('private'),
+  openai_domain: createDomainProvider('openai'),
+  anthropic_domain: createDomainProvider('anthropic'),
+  ai_domain: createDomainProvider('category-ai-!cn'),
+  youtube_domain: createDomainProvider('youtube'),
+  google_domain: createDomainProvider('google'),
+  github_domain: createDomainProvider('github'),
+  microsoftcn_domain: createDomainProvider('microsoft@cn'),
+  microsoft_domain: createDomainProvider('microsoft'),
+  applecn_domain: createDomainProvider('apple@cn'),
+  apple_domain: createDomainProvider('apple'),
+  telegram_domain: createDomainProvider('telegram'),
+  'cn!_domain': createDomainProvider('geolocation-!cn'),
 
-  'ip-private': createIpProvider('private'),
-  'ip-google': createIpProvider('google'),
-  'ip-apple': createIpProvider('apple', 'geo-lite'), // Apple IP 规则使用精简数据集。
-  'ip-telegram': createIpProvider('telegram'),
-  'ip-cn': createIpProvider('cn'),
+  private_ip: createIpProvider('private'),
+  google_ip: createIpProvider('google'),
+  apple_ip: createIpProvider('apple', 'geo-lite'), // Apple IP 规则使用精简数据集。
+  telegram_ip: createIpProvider('telegram'),
+  cn_ip: createIpProvider('cn'),
 
-  // 中国域名规则同时用于直连分流和 DNS 的 Fake-IP 过滤。
-  'site-cn': createRuleProvider(`${GITHUB_DOWNLOAD_PROXY}/${META_RULE_BASE_URL}/geo/geosite/cn.mrs`, 'domain'),
-  // 以下两份规则集仅供 DNS 的 Fake-IP 过滤使用。
+  // 这三份规则集仅供 DNS 的 fake-IP 过滤使用。
+  cn_domain: createRuleProvider(`${GITHUB_DOWNLOAD_PROXY}/${META_RULE_BASE_URL}/geo/geosite/cn.mrs`, 'domain'),
   fakeipfilter_cn: createRuleProvider(`${FAKE_IP_FILTER_BASE_URL}/fakeipfilter-cn.list`, 'domain', 'text'),
   'fakeipfilter_!cn': createRuleProvider(`${FAKE_IP_FILTER_BASE_URL}/fakeipfilter-!cn.list`, 'domain', 'text'),
 }
 
-// 沿用参考配置的顺序，额外规则放在会覆盖它们的通用规则之前。
+// 规则从上往下匹配，具体业务规则放在境内外兜底规则之前。
 const proxyRules = [
-  'RULE-SET,site-private,私有网络',
-  'RULE-SET,ip-private,私有网络,no-resolve',
+  'RULE-SET,private_ip,本地直连,no-resolve',
+  'RULE-SET,private_domain,本地直连',
 
-  // OpenAI、Claude 保留独立出口，Gemini 和其他 AI 服务走公共组。
-  'RULE-SET,site-openai,OpenAI',
-  'RULE-SET,site-anthropic,Claude',
-  'RULE-SET,site-google-gemini,AI 服务',
-  'RULE-SET,site-category-ai-not-cn,AI 服务',
-  'RULE-SET,site-github,GitHub',
-  'RULE-SET,site-youtube,YouTube',
-  'RULE-SET,site-telegram,Telegram',
-  'RULE-SET,ip-telegram,Telegram,no-resolve',
-  'RULE-SET,site-google,Google',
-  'RULE-SET,ip-google,Google,no-resolve',
+  // OpenAI、Claude 可以独立选节点，其余命中 AI 规则的域名走公共组。
+  'RULE-SET,openai_domain,OpenAI',
+  'RULE-SET,anthropic_domain,Claude',
+  'RULE-SET,ai_domain,AI',
+
+  'RULE-SET,youtube_domain,youtube',
+  'RULE-SET,google_domain,google',
+  'RULE-SET,github_domain,GitHub',
 
   // 微软和 Apple 的国内域名先直连，再匹配各自的完整规则集。
-  'RULE-SET,site-microsoft-cn,本地直连',
-  'RULE-SET,site-onedrive,微软服务',
-  'RULE-SET,site-microsoft,微软服务',
-  'RULE-SET,site-apple-cn,本地直连',
-  'RULE-SET,site-apple,苹果服务',
-  'RULE-SET,ip-apple,苹果服务,no-resolve',
+  'RULE-SET,microsoftcn_domain,本地直连',
+  'RULE-SET,microsoft_domain,Microsoft',
+  'RULE-SET,applecn_domain,本地直连',
+  'RULE-SET,apple_domain,Apple',
 
-  'RULE-SET,site-cn,国内服务',
-  'RULE-SET,ip-cn,国内服务,no-resolve',
-  'RULE-SET,site-geolocation-not-cn,非中国',
+  'RULE-SET,telegram_domain,Telegram',
+
+  // 已收录的境外域名直接交给「节点选择」，其余流量再按目标 IP 匹配。
+  'RULE-SET,cn!_domain,节点选择',
+
+  'RULE-SET,google_ip,google',
+  'RULE-SET,apple_ip,Apple',
+  'RULE-SET,telegram_ip,Telegram',
+  'RULE-SET,cn_ip,本地直连',
+
   'MATCH,漏网之鱼',
 ]
 
