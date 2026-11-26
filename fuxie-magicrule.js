@@ -108,9 +108,9 @@ const baseConfig = {
   },
 }
 
-// 按节点名匹配地区，正则忽略大小写。美国节点的 US 缩写只匹配独立单词。
+// 按节点名匹配地区，正则忽略大小写。US 前后可以是下划线、连字符或数字，避免把 AUS、USB 收进来。
 const REGION_GROUPS = [
-  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|\\bUS\\b|united[-\\s]?states)' },
+  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|(^|[^A-Za-z])US([^A-Za-z]|$)|united[-\\s]?states)' },
   { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
 
   // { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },

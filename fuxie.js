@@ -4,7 +4,7 @@ const ICON_BASE_URL = `${GH_PROXY}/https://raw.githubusercontent.com/Orz-3/mini/
 
 // 地区自动选择组的展示顺序和筛选规则。
 const REGION_GROUPS = [
-  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|\\bUS\\b|united[-\\s]?states)' },
+  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|(^|[^A-Za-z])US([^A-Za-z]|$)|united[-\\s]?states)' },
   { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
   { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
   // { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
