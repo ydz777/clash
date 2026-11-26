@@ -111,22 +111,14 @@ const REGION_GROUPS = [
   // { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
 ]
 
-// 协议测速组按节点名中的协议标记筛选。
-const AUTO_PROTOCOL_GROUPS = [
-  { name: '自动选择(vless)', filter: '(?i)(vless)', icon: 'Auto' },
-  // { name: '自动选择(anytls)', filter: '(?i)(anytls)', icon: 'Auto' },
-  // { name: '自动选择(tuic)', filter: '(?i)(tuic)', icon: 'Auto' },
-  // { name: '自动选择(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
-]
-
-// 选择组按协议、地区的顺序列出可用的测速组。
-const SPEED_TEST_GROUP_NAMES = [...AUTO_PROTOCOL_GROUPS.map(({ name }) => name), ...REGION_GROUPS.map(({ name }) => name)]
+const REGION_GROUP_NAMES = REGION_GROUPS.map(({ name }) => name)
 
 // 手动选择独立保留，业务组可以跳过节点选择，固定使用手动出口。
-const MANUAL_SELECTION_PROXIES = [...SPEED_TEST_GROUP_NAMES, '本地直连']
-const EXTRA_SERVICE_PROXIES = ['手动选择', ...SPEED_TEST_GROUP_NAMES]
+const MANUAL_SELECTION_PROXIES = [...REGION_GROUP_NAMES, '本地直连']
+const EXTRA_SERVICE_PROXIES = ['手动选择', ...REGION_GROUP_NAMES]
+const OPENAI_AND_CLAUDE_PROXIES = ['节点选择', '手动选择', ...MANUAL_SELECTION_PROXIES]
 
-// 保留参考配置的候选顺序，在业务组末尾补上手动、协议和地区出口。
+// 保留参考配置的候选顺序，在业务组末尾补上手动和地区出口。
 const PROXY_FIRST_PROXIES = ['节点选择', '自动选择', 'DIRECT', 'REJECT']
 const DIRECT_FIRST_PROXIES = ['DIRECT', '节点选择', '自动选择', 'REJECT']
 const SERVICE_PROXIES = [...PROXY_FIRST_PROXIES, ...EXTRA_SERVICE_PROXIES]
@@ -156,14 +148,15 @@ const createSpeedTestGroup = ({ name, filter, icon, ...options }) => ({
 const createSelectGroup = ({ name, icon, proxies = SERVICE_PROXIES, includeAll = true }) => ({ type: 'select', name, icon, proxies, 'include-all': includeAll })
 
 const proxyGroups = [
-  createSelectGroup({ name: '节点选择', icon: getReferenceIcon('Proxy'), proxies: ['自动选择', 'DIRECT', ...EXTRA_SERVICE_PROXIES] }),
+  createSelectGroup({ name: '节点选择', icon: getReferenceIcon('Proxy'), proxies: ['自动选择', ...EXTRA_SERVICE_PROXIES, 'DIRECT'] }),
   createSelectGroup({ name: '手动选择', icon: getIconUrl('Manual'), proxies: MANUAL_SELECTION_PROXIES }),
   { name: '自动选择', type: 'url-test', 'include-all': true, url: URL_TEST, interval: 300, icon: getReferenceIcon('Auto') },
-  ...AUTO_PROTOCOL_GROUPS.map(createSpeedTestGroup),
   ...REGION_GROUPS.map(createSpeedTestGroup),
   createSelectGroup({ name: '私有网络', icon: getReferenceIcon('WiFi'), proxies: DIRECT_FIRST_PROXIES }),
   createSelectGroup({ name: '广告拦截', icon: getReferenceIcon('Advertising'), proxies: ['REJECT', 'DIRECT'] }),
   createSelectGroup({ name: 'AI 服务', icon: getReferenceIcon('AI') }),
+  createSelectGroup({ name: 'OpenAI', icon: getIconUrl('ASN'), proxies: OPENAI_AND_CLAUDE_PROXIES }),
+  createSelectGroup({ name: 'Claude', icon: getIconUrl('ASN'), proxies: OPENAI_AND_CLAUDE_PROXIES }),
   createSelectGroup({ name: 'GitHub', icon: getReferenceIcon('GitHub') }),
   createSelectGroup({ name: 'YouTube', icon: getReferenceIcon('YouTube') }),
   createSelectGroup({ name: 'Telegram', icon: getReferenceIcon('Telegram') }),
@@ -196,6 +189,9 @@ const createIpProvider = (name, geoDirectory = 'geo') => createRuleProvider(`${M
 const builtInRuleProviders = {
   'site-private': createDomainProvider('private'),
   'site-category-ads-all': createDomainProvider('category-ads-all'),
+  'site-openai': createDomainProvider('openai'),
+  'site-anthropic': createDomainProvider('anthropic'),
+  'site-google-gemini': createDomainProvider('google-gemini'),
   'site-category-ai-not-cn': createDomainProvider('category-ai-!cn'),
   'site-youtube': createDomainProvider('youtube'),
   'site-google': createDomainProvider('google'),
@@ -227,6 +223,10 @@ const proxyRules = [
   'RULE-SET,ip-private,私有网络,no-resolve',
   'RULE-SET,site-category-ads-all,广告拦截',
 
+  // OpenAI、Claude 保留独立出口，Gemini 和其他 AI 服务走公共组。
+  'RULE-SET,site-openai,OpenAI',
+  'RULE-SET,site-anthropic,Claude',
+  'RULE-SET,site-google-gemini,AI 服务',
   'RULE-SET,site-category-ai-not-cn,AI 服务',
   'RULE-SET,site-github,GitHub',
   'RULE-SET,site-youtube,YouTube',
