@@ -153,7 +153,6 @@ const proxyGroups = [
   { name: '自动选择', type: 'url-test', 'include-all': true, url: URL_TEST, interval: 300, icon: getReferenceIcon('Auto') },
   ...REGION_GROUPS.map(createSpeedTestGroup),
   createSelectGroup({ name: '私有网络', icon: getReferenceIcon('WiFi'), proxies: DIRECT_FIRST_PROXIES }),
-  createSelectGroup({ name: '广告拦截', icon: getReferenceIcon('Advertising'), proxies: ['REJECT', 'DIRECT'] }),
   createSelectGroup({ name: 'AI 服务', icon: getReferenceIcon('AI') }),
   createSelectGroup({ name: 'OpenAI', icon: getIconUrl('ASN'), proxies: OPENAI_AND_CLAUDE_PROXIES }),
   createSelectGroup({ name: 'Claude', icon: getIconUrl('ASN'), proxies: OPENAI_AND_CLAUDE_PROXIES }),
@@ -188,7 +187,6 @@ const createIpProvider = (name, geoDirectory = 'geo') => createRuleProvider(`${M
 
 const builtInRuleProviders = {
   'site-private': createDomainProvider('private'),
-  'site-category-ads-all': createDomainProvider('category-ads-all'),
   'site-openai': createDomainProvider('openai'),
   'site-anthropic': createDomainProvider('anthropic'),
   'site-google-gemini': createDomainProvider('google-gemini'),
@@ -221,7 +219,6 @@ const builtInRuleProviders = {
 const proxyRules = [
   'RULE-SET,site-private,私有网络',
   'RULE-SET,ip-private,私有网络,no-resolve',
-  'RULE-SET,site-category-ads-all,广告拦截',
 
   // OpenAI、Claude 保留独立出口，Gemini 和其他 AI 服务走公共组。
   'RULE-SET,site-openai,OpenAI',
