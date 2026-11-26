@@ -59,7 +59,7 @@ const baseConfig = {
 
     // 过滤列表里的域名返回真实 IP。
     'fake-ip-filter-mode': 'blacklist',
-    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com', 'rule-set:site-private', 'rule-set:site-cn', 'rule-set:fakeipfilter_cn', 'rule-set:fakeipfilter_!cn'],
+    'fake-ip-filter': ['+.lan', '+.local', 'time.*.com', 'ntp.*.com'],
 
     // 先用 IP 地址形式的 DNS 解析 DoH 服务器域名。
     'default-nameserver': ['223.5.5.5', '119.29.29.29'],
