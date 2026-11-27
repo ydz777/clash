@@ -1,4 +1,4 @@
-// 面板、图标和 Geo 数据使用的 GitHub 下载代理。
+// 面板、Orz-3 图标和 Geo 数据使用的 GitHub 下载代理。
 const GITHUB_DOWNLOAD_PROXY = 'https://gh-proxy.com'
 // Geo 数据下载地址，跟随 MetaCubeX 的最新发布。
 const GEO_DATA_RELEASE_URL = `${GITHUB_DOWNLOAD_PROXY}/github.com/MetaCubeX/meta-rules-dat/releases/download/latest`
@@ -108,32 +108,23 @@ const baseConfig = {
   },
 }
 
-// 按节点名匹配地区，正则忽略大小写。美国节点的 US 缩写只匹配独立单词。
+const ORZ_ICON_BASE_URL = `${GITHUB_DOWNLOAD_PROXY}/https://raw.githubusercontent.com/Orz-3/mini/master/Color`
+const QURE_ICON_BASE_URL = 'https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color'
+const getOrzIconUrl = (iconName) => `${ORZ_ICON_BASE_URL}/${iconName}.png`
+const getQureIconUrl = (iconName) => `${QURE_ICON_BASE_URL}/${iconName}.png`
+
+// 按节点名匹配地区，正则忽略大小写。US 前后可以是下划线、连字符或数字，避免把 AUS、USB 收进来。
 const REGION_GROUPS = [
-  { name: '美国节点', icon: 'US', filter: '(?i)(🇺🇸|美|USA|\\bUS\\b|united[-\\s]?states)' },
-  { name: '日本节点', icon: 'JP', filter: '(?i)(🇯🇵|日|jp|japan)' },
+  { name: '美国节点', icon: getOrzIconUrl('US'), filter: '(?i)(🇺🇸|美|USA|(^|[^A-Za-z])US([^A-Za-z]|$)|united[-\\s]?states)' },
+  { name: '日本节点', icon: getOrzIconUrl('JP'), filter: '(?i)(🇯🇵|日|jp|japan)' },
 
-  // { name: '香港节点', icon: 'HK', filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
-  // { name: '新加坡节点', icon: 'SG', filter: '(?i)(🇸🇬|新|sg|singapore)' },
-  // { name: '台湾节点', icon: 'TW', filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
-]
-
-// 协议测速组按节点名中的协议标记筛选。
-const AUTO_PROTOCOL_GROUPS = [
-  { name: '自动选择(vless)', filter: '(?i)(vless)', icon: 'Auto' },
-  // { name: '自动选择(anytls)', filter: '(?i)(anytls)', icon: 'Auto' },
-  // { name: '自动选择(tuic)', filter: '(?i)(tuic)', icon: 'Auto' },
-  // { name: '自动选择(hysteria)', filter: '(?i)(hysteria)', icon: 'Auto' },
-]
-
-// 选择组按协议、地区的顺序列出可用的测速组。
-const SPEED_TEST_GROUP_NAMES = [
-  ...AUTO_PROTOCOL_GROUPS.map(({ name }) => name),
-  ...REGION_GROUPS.map(({ name }) => name),
+  // { name: '香港节点', icon: getOrzIconUrl('HK'), filter: '(?i)(🇭🇰|港|hk|hongkong|hong kong)' },
+  // { name: '新加坡节点', icon: getOrzIconUrl('SG'), filter: '(?i)(🇸🇬|新|sg|singapore)' },
+  // { name: '台湾节点', icon: getOrzIconUrl('TW'), filter: '(?i)(🇹🇼|台|tw|taiwan|tai wan)' },
 ]
 
 // 「节点选择」可以引用「手动选择」，反向引用会形成循环。
-const MANUAL_SELECTION_PROXIES = [...SPEED_TEST_GROUP_NAMES, '本地直连']
+const MANUAL_SELECTION_PROXIES = [...REGION_GROUPS.map(({ name }) => name), '本地直连']
 const NODE_SELECTION_PROXIES = ['手动选择', ...MANUAL_SELECTION_PROXIES]
 
 // 面板没有已保存的选择时，业务组使用候选列表的首项。
@@ -142,9 +133,6 @@ const DIRECT_FIRST_PROXIES = [
   '本地直连',
   ...DEFAULT_SERVICE_PROXIES.filter((name) => name !== '本地直连'),
 ]
-
-const ICON_BASE_URL = `${GITHUB_DOWNLOAD_PROXY}/https://raw.githubusercontent.com/Orz-3/mini/master/Color`
-const getIconUrl = (iconName) => `${ICON_BASE_URL}/${iconName}.png`
 
 // 只有测速组发起探测，业务选择组复用测速结果。
 const createSpeedTestGroup = ({ name, filter, icon, ...options }) => ({
@@ -158,7 +146,7 @@ const createSpeedTestGroup = ({ name, filter, icon, ...options }) => ({
   'exclude-type': 'direct',
   name,
   filter,
-  icon: getIconUrl(icon),
+  icon,
   ...options,
 })
 
@@ -167,36 +155,28 @@ const createSelectGroup = ({ name, icon, proxies = DEFAULT_SERVICE_PROXIES, incl
   type: 'select',
   name,
   proxies,
-  icon: getIconUrl(icon),
+  icon,
   'include-all': includeAll,
 })
 
 const proxyGroups = [
-  createSelectGroup({ name: '节点选择', icon: 'Global', proxies: NODE_SELECTION_PROXIES }),
-  createSelectGroup({ name: '手动选择', icon: 'Manual', proxies: MANUAL_SELECTION_PROXIES }),
-  ...AUTO_PROTOCOL_GROUPS.map(createSpeedTestGroup),
+  createSelectGroup({ name: '节点选择', icon: getQureIconUrl('Proxy'), proxies: NODE_SELECTION_PROXIES }),
+  createSelectGroup({ name: '手动选择', icon: getOrzIconUrl('Manual'), proxies: MANUAL_SELECTION_PROXIES }),
   ...REGION_GROUPS.map(createSpeedTestGroup),
-  createSelectGroup({ name: '本地直连', icon: 'China', proxies: ['DIRECT'], includeAll: false }),
+  createSelectGroup({ name: '本地直连', icon: getOrzIconUrl('China'), proxies: ['DIRECT'], includeAll: false }),
 
   // 业务组按规则首次引用的顺序排列。
-  createSelectGroup({ name: '私有网络', icon: 'China', proxies: DIRECT_FIRST_PROXIES }),
-  {
-    type: 'select',
-    name: '广告拦截',
-    proxies: ['REJECT', 'DIRECT'],
-    icon: 'https://cdn.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Advertising.png',
-    'include-all': false,
-  },
-  createSelectGroup({ name: 'AI 服务', icon: 'ASN' }),
-  createSelectGroup({ name: 'GitHub', icon: 'github' }),
-  createSelectGroup({ name: 'YouTube', icon: 'YouTube' }),
-  createSelectGroup({ name: 'Telegram', icon: 'Telegram' }),
-  createSelectGroup({ name: 'Google', icon: 'Google' }),
-  createSelectGroup({ name: '微软服务', icon: 'Microsoft', proxies: DIRECT_FIRST_PROXIES }),
-  createSelectGroup({ name: '苹果服务', icon: 'Apple', proxies: DIRECT_FIRST_PROXIES }),
-  createSelectGroup({ name: '国内服务', icon: 'China', proxies: DIRECT_FIRST_PROXIES }),
-  createSelectGroup({ name: '非中国', icon: 'Global' }),
-  createSelectGroup({ name: '漏网之鱼', icon: 'Final', proxies: ['节点选择', '本地直连'], includeAll: false }),
+  createSelectGroup({ name: '广告拦截', icon: getQureIconUrl('Advertising'), proxies: ['REJECT', 'DIRECT'], includeAll: false }),
+  createSelectGroup({ name: 'AI 服务', icon: getQureIconUrl('AI') }),
+  createSelectGroup({ name: 'GitHub', icon: getQureIconUrl('GitHub') }),
+  createSelectGroup({ name: 'YouTube', icon: getQureIconUrl('YouTube') }),
+  createSelectGroup({ name: 'Telegram', icon: getQureIconUrl('Telegram') }),
+  createSelectGroup({ name: 'Google', icon: getQureIconUrl('Google_Search') }),
+  createSelectGroup({ name: '微软服务', icon: getQureIconUrl('Microsoft'), proxies: DIRECT_FIRST_PROXIES }),
+  createSelectGroup({ name: '苹果服务', icon: getQureIconUrl('Apple'), proxies: DIRECT_FIRST_PROXIES }),
+  createSelectGroup({ name: '国内服务', icon: getQureIconUrl('China'), proxies: DIRECT_FIRST_PROXIES }),
+  createSelectGroup({ name: '非中国', icon: getQureIconUrl('Global') }),
+  createSelectGroup({ name: '漏网之鱼', icon: getQureIconUrl('Final'), proxies: ['节点选择', '本地直连'], includeAll: false }),
 ]
 
 // MetaCubeX 的 meta 分支提供域名和 IP 分流规则。
@@ -255,8 +235,8 @@ const builtInRuleProviders = {
 
 // Mihomo 从上往下匹配规则，命中后使用对应分流组。
 const proxyRules = [
-  'RULE-SET,site-private,私有网络',
-  'RULE-SET,ip-private,私有网络,no-resolve',
+  'RULE-SET,site-private,本地直连',
+  'RULE-SET,ip-private,本地直连,no-resolve',
   'RULE-SET,site-category-ads-all,广告拦截',
   'RULE-SET,site-openai,AI 服务',
   'RULE-SET,site-anthropic,AI 服务',
@@ -272,8 +252,9 @@ const proxyRules = [
   'RULE-SET,site-microsoft,微软服务',
   'RULE-SET,site-apple,苹果服务',
   'RULE-SET,site-cn,国内服务',
-  'RULE-SET,ip-cn,国内服务,no-resolve',
   'RULE-SET,site-geolocation-not-cn,非中国',
+  // 域名规则均未命中时，按需解析并用大陆 IP 网段兜底。
+  'RULE-SET,ip-cn,国内服务',
   'MATCH,漏网之鱼',
 ]
 
